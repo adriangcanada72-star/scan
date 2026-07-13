@@ -185,7 +185,7 @@
    WRITE_URL – Google Apps Script endpoint that logs scans to the Sheet
                (leave "" until you deploy it; scans just won't be logged)
 ===================================================================== */
-const API_BASE  = "";
+const API_BASE  = "https://glide-sync-service-production.up.railway.app";
 const WRITE_URL = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-Y2Eq6uBRqxN4Dl1Trcmg6otbfv9pPkm8ZnEBHDjxzXSt4/exec";
 
 /* The signed-in Glide user's email arrives as ?user=... on the embed URL */
@@ -242,7 +242,7 @@ async function lookup(gtin) {
 }
 
 /* ============ LOG THE SCAN (to Google Sheet via Apps Script) ============ */
-async function logScan(scan) {
+async function logScan(scan, p) {
   if (!WRITE_URL) return;                 // not configured yet — skip quietly
   try {
     await fetch(WRITE_URL, {
@@ -250,11 +250,23 @@ async function logScan(scan) {
       mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
-        user: USER_EMAIL,
-        gtin: scan.gtin || "",
-        lot: scan.lot || "",
+        user:     USER_EMAIL,
+        gtin:     scan.gtin || "",
+        lot:      scan.lot || "",
         packaged: scan.packaged || "",
-        at: new Date().toISOString()
+        at:       new Date().toISOString(),
+        // full product snapshot, captured at scan time
+        name:     p ? (p.name || "")     : "",
+        brand:    p ? (p.brand || "")    : "",
+        category: p ? (p.category || "") : "",
+        species:  p ? (p.species || "")  : "",
+        size:     p ? (p.size || "")     : "",
+        thc:      p ? (p.thc || "")      : "",
+        cbd:      p ? (p.cbd || "")      : "",
+        terp1:    p && p.terpenes ? (p.terpenes[0] || "") : "",
+        terp2:    p && p.terpenes ? (p.terpenes[1] || "") : "",
+        terp3:    p && p.terpenes ? (p.terpenes[2] || "") : "",
+        description: p ? (p.description || "") : ""
       })
     });
   } catch (e) { /* logging must never block the card */ }
@@ -302,7 +314,7 @@ async function handleScan(scan) {
   setStatus("Looking up " + scan.gtin + "…");
   const p = await lookup(scan.gtin);
   renderCard(p, scan);
-  logScan(scan);
+  logScan(scan, p);
   setStatus("", false);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
