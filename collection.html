@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>My Collection · The Terpene Sommelier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,800&family=DM+Sans:wght@400;500;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#31AA64;
+    --green-deep:#227A48;
+    --green-dark:#1a5c37;
+    --stock:#F4F0E6;
+    --stock-line:#D9D2C0;
+    --stock-ink:#23262B;
+    --foil:#C9A44C;
+    --foil-hi:#F0DFA0;
+    --ink-dim:#6B7078;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:transparent}
+  body{font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#1D2024}
+
+  .wrap{max-width:900px;margin:0 auto;padding:10px 12px 32px}
+
+  .status{
+    text-align:center;color:var(--ink-dim);font-size:.9rem;
+    padding:40px 20px;line-height:1.7;
+  }
+  .status b{color:#1D2024}
+  .count{
+    font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.16em;
+    font-size:.66rem;color:var(--ink-dim);font-weight:600;
+    padding:2px 0 14px;
+  }
+
+  /* ---------- grid ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:14px;
+  }
+  @media(min-width:560px){ .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px} }
+
+  /* ---------- card ---------- */
+  .scene{aspect-ratio:5/7;perspective:1200px}
+  .card{
+    position:relative;width:100%;height:100%;
+    transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.2,.7,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 10px 26px -8px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.06);
+  }
+
+  /* ===== FRONT ===== */
+  .front{
+    background:linear-gradient(160deg,var(--green) 0%,var(--green-deep) 55%,var(--green-dark) 100%);
+    display:flex;flex-direction:column;
+  }
+  .front::after{
+    content:"";position:absolute;inset:7px;
+    border:1px solid rgba(255,255,255,.22);border-radius:9px;pointer-events:none;
+  }
+  .f-top{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 11px 0;color:rgba(255,255,255,.9);
+    font-family:'Oswald',sans-serif;text-transform:uppercase;
+    letter-spacing:.1em;font-size:.46rem;font-weight:600;
+    position:relative;z-index:2;
+  }
+  .portrait{
+    flex:1;position:relative;display:flex;align-items:center;justify-content:center;
+    margin:5px 9px 0;border-radius:8px;overflow:hidden;
+    background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 2px,transparent 2px 8px),
+      radial-gradient(80% 70% at 50% 35%,rgba(255,255,255,.16),rgba(255,255,255,0) 70%);
+  }
+  .portrait::before{
+    content:"";position:absolute;width:160%;height:160%;
+    background:conic-gradient(from 0deg,rgba(255,255,255,.10),rgba(255,255,255,0) 22%,rgba(255,255,255,.10) 50%,rgba(255,255,255,0) 72%,rgba(255,255,255,.10));
+    animation:spin 26s linear infinite;opacity:.45;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.portrait::before{animation:none}}
+  .brandmark{
+    position:relative;z-index:2;text-align:center;padding:0 8px;
+    color:#fff;font-family:'Playfair Display',serif;font-weight:800;
+    font-size:.82rem;line-height:1.15;letter-spacing:.01em;
+    text-shadow:0 2px 8px rgba(0,0,0,.3);
+  }
+  .nameplate{
+    position:relative;z-index:2;margin:7px 9px 0;padding:8px 9px 7px;border-radius:8px;
+    background:linear-gradient(180deg,#20242b,#151820);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .nameplate .strain{
+    font-family:'Playfair Display',serif;font-style:italic;font-weight:800;
+    font-size:.92rem;line-height:1.1;color:#fff;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .nameplate .foilbar{
+    display:inline-block;margin-top:5px;padding:2px 7px;border-radius:3px;
+    font-family:'Oswald',sans-serif;text-transform:uppercase;
+    letter-spacing:.12em;font-size:.44rem;font-weight:600;color:#3a2f12;
+    background:linear-gradient(100deg,var(--foil) 0%,var(--foil-hi) 40%,var(--foil) 65%,#a9863a 100%);
+  }
+  .f-bot{
+    padding:6px 11px 9px;color:rgba(255,255,255,.92);position:relative;z-index:2;
+    font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.1em;
+    font-size:.5rem;display:flex;justify-content:space-between;
+  }
+
+  /* ===== BACK ===== */
+  .back{
+    transform:rotateY(180deg);
+    background:
+      repeating-linear-gradient(0deg,transparent 0 18px,rgba(0,0,0,.014) 18px 19px),
+      var(--stock);
+    color:var(--stock-ink);padding:11px 10px;display:flex;flex-direction:column;
+  }
+  .back::after{
+    content:"";position:absolute;inset:6px;
+    border:1.5px solid var(--stock-line);border-radius:9px;pointer-events:none;
+  }
+  .b-top{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:2px solid var(--stock-ink);padding-bottom:6px;
+  }
+  .b-top .nm{
+    font-family:'Playfair Display',serif;font-weight:800;font-size:.78rem;
+    line-height:1.05;max-width:70%;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .b-top .sp{
+    font-family:'Oswald',sans-serif;font-weight:700;font-size:.5rem;
+    color:var(--green-deep);text-align:right;letter-spacing:.08em;
+  }
+  .statline{display:flex;gap:5px;margin-top:8px}
+  .stat{
+    flex:1;background:#fff;border:1px solid var(--stock-line);border-radius:5px;
+    padding:5px 3px;text-align:center;
+  }
+  .stat .lab{
+    font-family:'Oswald',sans-serif;text-transform:uppercase;
+    letter-spacing:.1em;font-size:.4rem;color:#7a7e85;font-weight:600;
+  }
+  .stat .val{
+    font-family:'Oswald',sans-serif;font-weight:700;font-size:.66rem;
+    color:var(--stock-ink);margin-top:1px;white-space:nowrap;
+  }
+  .terp-h{
+    margin-top:9px;font-family:'Oswald',sans-serif;text-transform:uppercase;
+    letter-spacing:.12em;font-size:.42rem;font-weight:600;color:#5c6067;
+    border-bottom:1px solid var(--stock-line);padding-bottom:3px;
+  }
+  .terp-row{
+    display:flex;align-items:center;gap:5px;
+    padding:4.5px 0;border-bottom:1px solid var(--stock-line);
+    font-size:.6rem;
+  }
+  .terp-row .rk{
+    font-family:'Oswald',sans-serif;font-weight:700;
+    font-size:.58rem;color:var(--green-deep);flex:0 0 auto;
+  }
+  .terp-row .tn{font-weight:700;line-height:1.2}
+  .b-foot{
+    margin-top:auto;padding-top:7px;display:flex;justify-content:space-between;align-items:flex-end;
+    font-size:.42rem;color:#6b6f76;line-height:1.4;
+  }
+  .b-foot .lot{font-family:'Oswald',sans-serif;letter-spacing:.05em}
+  .b-foot .mark{font-family:'Playfair Display',serif;font-weight:700;font-size:.52rem;color:var(--stock-ink)}
+  .b-foot .mark b{color:var(--green-deep)}
+
+  .hint{
+    text-align:center;color:var(--ink-dim);font-size:.72rem;
+    margin-top:18px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="count" class="count"></div>
+  <div id="out"></div>
+</div>
+
+<script>
+/* =====================================================================
+   My Collection — flippable hockey cards for everything this user scanned.
+   Reads the scan history from the Apps Script / Google Sheet, filtered to
+   the signed-in Glide user's email (passed in as ?user= by the embed URL).
+===================================================================== */
+const READ_URL   = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-Y2Eq6uBRqxN4Dl1Trcmg6otbfv9pPkm8ZnEBHDjxzXSt4/exec";
+const USER_EMAIL = new URLSearchParams(location.search).get("user") || "";
+
+const out   = document.getElementById("out");
+const count = document.getElementById("count");
+
+const esc = s => String(s || "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+function cardHTML(r, i) {
+  const terps = [r.terp1, r.terp2, r.terp3].filter(Boolean);
+  const terpRows = terps.map((t, n) =>
+    `<div class="terp-row"><span class="rk">${n + 1}</span><span class="tn">${esc(t)}</span></div>`
+  ).join("") || `<div class="terp-row"><span class="tn" style="color:#8a8e95;font-weight:400">Not listed</span></div>`;
+
+  const num = String(i + 1).padStart(3, "0");
+  const scanned = (r.at || "").slice(0, 10);
+
+  return `
+  <div class="scene">
+    <div class="card" role="button" tabindex="0" aria-label="Flip ${esc(r.name)}">
+
+      <div class="face front">
+        <div class="f-top"><span>Terpene Series</span><span>No. ${num}</span></div>
+        <div class="portrait">
+          <div class="brandmark">${esc(r.brand) || "&nbsp;"}</div>
+        </div>
+        <div class="nameplate">
+          <div class="strain">${esc(r.name) || "Unknown product"}</div>
+          <span class="foilbar">${esc(r.category) || "Cannabis"}${r.size ? " · " + esc(r.size) : ""}</span>
+        </div>
+        <div class="f-bot">
+          <span>${esc(r.species) || ""}</span>
+          <span>${esc(r.thc) || ""}</span>
+        </div>
+      </div>
+
+      <div class="face back">
+        <div class="b-top">
+          <div class="nm">${esc(r.name) || "Unknown"}</div>
+          <div class="sp">${esc(r.species) || ""}</div>
+        </div>
+        <div class="statline">
+          <div class="stat"><div class="lab">THC</div><div class="val">${esc(r.thc) || "—"}</div></div>
+          <div class="stat"><div class="lab">CBD</div><div class="val">${esc(r.cbd) || "—"}</div></div>
+        </div>
+        <div class="terp-h">Terpene Profile</div>
+        ${terpRows}
+        <div class="b-foot">
+          <div>
+            ${r.lot ? `<div class="lot">LOT ${esc(r.lot)}</div>` : ""}
+            ${scanned ? `<div class="lot">SCANNED ${esc(scanned)}</div>` : ""}
+          </div>
+          <div class="mark">The <b>Terpene</b> Sommelier</div>
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+function wireFlips() {
+  document.querySelectorAll(".card").forEach(card => {
+    const flip = () => card.classList.toggle("flipped");
+    card.addEventListener("click", flip);
+    card.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+    });
+  });
+}
+
+async function load() {
+  if (!USER_EMAIL) {
+    out.innerHTML = `<div class="status">Sign in to see your collection.</div>`;
+    return;
+  }
+  out.innerHTML = `<div class="status">Loading your collection…</div>`;
+
+  let rows = [];
+  try {
+    const res = await fetch(READ_URL + "?user=" + encodeURIComponent(USER_EMAIL));
+    rows = await res.json();
+    if (!Array.isArray(rows)) rows = [];
+  } catch (e) {
+    out.innerHTML = `<div class="status">Couldn't load your collection right now.<br>Pull down to refresh.</div>`;
+    return;
+  }
+
+  // newest first, one card per product (latest scan of each wins)
+  const seen = new Map();
+  rows.reverse().forEach(r => { if (r.gtin && !seen.has(r.gtin)) seen.set(r.gtin, r); });
+  const list = [...seen.values()];
+
+  if (!list.length) {
+    out.innerHTML = `<div class="status">Your collection is empty.<br><br>
+      Scan a product's barcode to add your first card.</div>`;
+    return;
+  }
+
+  count.textContent = list.length + (list.length === 1 ? " card" : " cards");
+  out.innerHTML = `<div class="grid">${list.map(cardHTML).join("")}</div>
+                   <p class="hint">Tap a card to flip it</p>`;
+  wireFlips();
+}
+
+load();
+</script>
+</body>
+</html>
