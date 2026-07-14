@@ -291,151 +291,1285 @@
 </div>
 <script>
 /* ══════════════════════════════════════════════════════════════
-   TRIAX v3 — terpene database, synergies, blends
-   Ported from TRIAX_v3_TwoAxis_Calculator_10.xlsx.
+   TRIAX v3 — Two-Axis Terpene Vector System
+   Terpene database, synergy pairs, and the 46 sommelier blend
+   descriptions. Ported from TRIAX_v3_TwoAxis_Calculator_10.xlsx.
 ══════════════════════════════════════════════════════════════ */
 const TRIAX_DATA = {
- database: [
-  {name:"Alpha-Pinene",cerebral:3,somatic:0,threshold:.1,volatility:.5,density:0,clarity:1,aroma:"a sharp forest brightness — fresh pine needles, mountain air, and rosemary"},
-  {name:"Beta-Pinene",cerebral:2,somatic:0,threshold:.1,volatility:.5,density:0,clarity:.75,aroma:"resinous pine and a hint of dry herb"},
-  {name:"Bisabolol",cerebral:0,somatic:-3,threshold:.05,volatility:0,density:0,clarity:0,aroma:"a gentle chamomile sweetness, almost honeyed, with quiet floral depth"},
-  {name:"Borneol",cerebral:0,somatic:-2,threshold:.05,volatility:0,density:0,clarity:0,aroma:"cool camphor-mint with a woody base"},
-  {name:"Camphene",cerebral:2,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.5,aroma:"dry pine-camphor, slightly resinous"},
-  {name:"Carene",cerebral:2,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"sharp pine-resin with a faint sweet cypress undertone"},
-  {name:"Cedrene",cerebral:0,somatic:-2,threshold:.05,volatility:0,density:0,clarity:0,aroma:"dry cedar wood with a sharp, resinous edge"},
-  {name:"Cymene",cerebral:2,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"citrus-thyme with a peppery undertone"},
-  {name:"Eucalyptol",cerebral:4,somatic:0,threshold:.1,volatility:.5,density:0,clarity:1,aroma:"a cooling rush of eucalyptus, mint, and camphor"},
-  {name:"Farnesene",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:0,clarity:0,aroma:"fresh green apple skin with a touch of sweet wood"},
-  {name:"Fenchol",cerebral:1,somatic:0,threshold:.05,volatility:0,density:0,clarity:0,aroma:"fresh pine-camphor with a faint floral lift"},
-  {name:"Geraniol",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:0,clarity:0,aroma:"sweet floral rose with a hint of citrus peel"},
-  {name:"Geranyl-Acetate",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:0,clarity:0,aroma:"sweet floral with hints of fruit and pear, almost rose-like"},
-  {name:"Germacrene-B",cerebral:0,somatic:0,threshold:.05,volatility:0,density:0,clarity:0,aroma:"an unusual woody-herbal undertone, slightly earthy and dry"},
-  {name:"Guaiol",cerebral:0,somatic:-3,threshold:.05,volatility:0,density:-.25,clarity:0,aroma:"cool pine resin softened by rose and weathered wood"},
-  {name:"Alpha-Humulene",cerebral:0,somatic:-2,threshold:.05,volatility:0,density:0,clarity:0,aroma:"an earthy hop character, woody and slightly bitter, like a brewer's cellar"},
-  {name:"Isopulegol",cerebral:1,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.5,aroma:"cool mint with a hint of pepper"},
-  {name:"Limonene",cerebral:4,somatic:0,threshold:.1,volatility:0,density:0,clarity:.5,aroma:"a bright burst of citrus — lemon zest and orange peel, immediately energizing"},
-  {name:"Linalool",cerebral:-1,somatic:-5,threshold:.08,volatility:0,density:0,clarity:0,aroma:"a calming wash of lavender and sweet floral that settles immediately"},
-  {name:"Menthol",cerebral:0,somatic:-2,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"sharp cooling mint, bright and clean"},
-  {name:"Nerolidol",cerebral:-1,somatic:-5,threshold:.05,volatility:0,density:-.5,clarity:0,aroma:"a soft woody undercurrent with hints of apple bark and dried flowers"},
-  {name:"Ocimene",cerebral:3,somatic:0,threshold:.1,volatility:.25,density:0,clarity:0,aroma:"a sweet herbal lift, basil and ripe mango with a clean minty edge"},
-  {name:"Phellandrene",cerebral:2,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.5,aroma:"minty pine with a faint citrus snap"},
-  {name:"Sabinene",cerebral:2,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"sharp peppery pine with a faint citrus snap"},
-  {name:"Selinadienes",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:-.25,clarity:0,aroma:"a distinctive woody-cellar character, deep and grounding"},
-  {name:"Terpinene",cerebral:3,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"sharp citrus-pine with a turpentine edge"},
-  {name:"Terpineol",cerebral:1,somatic:0,threshold:.05,volatility:0,density:0,clarity:.25,aroma:"lilac and pine with a soft floral sweetness"},
-  {name:"Terpinolene",cerebral:5,somatic:0,threshold:.15,volatility:.5,density:0,clarity:0,aroma:"a complex layered aroma — herbal, faintly apple, lilac, with a curl of smoke"},
-  {name:"Valencene",cerebral:3,somatic:0,threshold:.05,volatility:0,density:0,clarity:0,aroma:"a vivid sweet orange character with grapefruit brightness"},
-  {name:"Beta-Caryophyllene",cerebral:1,somatic:-3,threshold:.05,volatility:0,density:0,clarity:.25,aroma:"warm black pepper and spicy wood with clove-like depth"},
-  {name:"Beta-Myrcene",cerebral:-2,somatic:-5,threshold:.05,volatility:.5,density:-.5,clarity:-.25,aroma:"earthy musk, ripe tropical fruit, herbal hops, damp forest floor"},
-  {name:"Alpha-Terpinene",cerebral:3,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"sharp citrus-pine, warmer than gamma"},
-  {name:"Bergamotene",cerebral:-1,somatic:-3,threshold:.05,volatility:0,density:0,clarity:0,aroma:"warm woody bergamot, faint citrus-rind sweetness"},
-  {name:"Cadinene",cerebral:0,somatic:-3,threshold:.05,volatility:0,density:-.25,clarity:0,aroma:"deep cedar and herbal undergrowth"},
-  {name:"Caryophyllene-Oxide",cerebral:-1,somatic:-3,threshold:.05,volatility:0,density:0,clarity:0,aroma:"dry peppery wood with a cool herbaceous edge"},
-  {name:"Citral",cerebral:3,somatic:0,threshold:.05,volatility:0,density:0,clarity:.25,aroma:"sharp lemon-lime with bright green sweetness"},
-  {name:"Citronellol",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:0,clarity:0,aroma:"rose-lemon, soft floral citrus"},
-  {name:"D-Limonene",cerebral:4,somatic:0,threshold:.1,volatility:0,density:0,clarity:.5,aroma:"a bright burst of citrus — lemon zest and orange peel, immediately energizing"},
-  {name:"Eugenol",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:0,clarity:0,aroma:"warm clove and sweet spice"},
-  {name:"Gamma-Terpinene",cerebral:3,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"sharp citrus-pine with a turpentine edge"},
-  {name:"Isoborneol",cerebral:0,somatic:-2,threshold:.05,volatility:0,density:0,clarity:0,aroma:"camphor-cool, slightly piney"},
-  {name:"Methyl-Isovalerate",cerebral:1,somatic:0,threshold:.05,volatility:.25,density:0,clarity:0,aroma:"sharp green apple and fermented sweetness"},
-  {name:"Nerol",cerebral:0,somatic:-1,threshold:.05,volatility:0,density:0,clarity:0,aroma:"sweet rose with a faint lemon undercurrent"},
-  {name:"Nookatone",cerebral:2,somatic:0,threshold:.05,volatility:0,density:0,clarity:0,aroma:"grapefruit-citrus with subtle woody depth"},
-  {name:"Octanol",cerebral:0,somatic:-2,threshold:.05,volatility:0,density:0,clarity:0,aroma:"soft fatty alcohol, gently floral"},
-  {name:"Phytol",cerebral:-1,somatic:-4,threshold:.1,volatility:0,density:-.5,clarity:0,aroma:"a fresh green note, balsamic and grassy like cut hay"},
-  {name:"Pulegone",cerebral:-1,somatic:-4,threshold:.1,volatility:0,density:-.25,clarity:0,aroma:"minty pennyroyal, sharp herbal, slightly camphorous"},
-  {name:"Thujene",cerebral:2,somatic:0,threshold:.05,volatility:.25,density:0,clarity:.25,aroma:"warm woody-pine with a slight medicinal edge"},
-  {name:"(none)",cerebral:0,somatic:0,threshold:0,volatility:0,density:0,clarity:0,aroma:""}
+ "database": [
+  {
+   "name": "Alpha-Pinene",
+   "cerebral": 3.0,
+   "somatic": 0.0,
+   "threshold": 0.1,
+   "volatility": 0.5,
+   "density": 0.0,
+   "clarity": 1.0,
+   "aroma": "a sharp forest brightness — fresh pine needles, mountain air, and rosemary"
+  },
+  {
+   "name": "Beta-Pinene",
+   "cerebral": 2.0,
+   "somatic": 0.0,
+   "threshold": 0.1,
+   "volatility": 0.5,
+   "density": 0.0,
+   "clarity": 0.75,
+   "aroma": "resinous pine and a hint of dry herb"
+  },
+  {
+   "name": "Bisabolol",
+   "cerebral": 0.0,
+   "somatic": -3.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "a gentle chamomile sweetness, almost honeyed, with quiet floral depth"
+  },
+  {
+   "name": "Borneol",
+   "cerebral": 0.0,
+   "somatic": -2.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "cool camphor-mint with a woody base"
+  },
+  {
+   "name": "Camphene",
+   "cerebral": 2.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.5,
+   "aroma": "dry pine-camphor, slightly resinous"
+  },
+  {
+   "name": "Carene",
+   "cerebral": 2.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "sharp pine-resin with a faint sweet cypress undertone"
+  },
+  {
+   "name": "Cedrene",
+   "cerebral": 0.0,
+   "somatic": -2.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "dry cedar wood with a sharp, resinous edge"
+  },
+  {
+   "name": "Cymene",
+   "cerebral": 2.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "citrus-thyme with a peppery undertone"
+  },
+  {
+   "name": "Eucalyptol",
+   "cerebral": 4.0,
+   "somatic": 0.0,
+   "threshold": 0.1,
+   "volatility": 0.5,
+   "density": 0.0,
+   "clarity": 1.0,
+   "aroma": "a cooling rush of eucalyptus, mint, and camphor"
+  },
+  {
+   "name": "Farnesene",
+   "cerebral": 0.0,
+   "somatic": -1.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "fresh green apple skin with a touch of sweet wood"
+  },
+  {
+   "name": "Fenchol",
+   "cerebral": 1.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "fresh pine-camphor with a faint floral lift"
+  },
+  {
+   "name": "Geraniol",
+   "cerebral": 0.0,
+   "somatic": -1.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "sweet floral rose with a hint of citrus peel"
+  },
+  {
+   "name": "Geranyl-Acetate",
+   "cerebral": 0.0,
+   "somatic": -1.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "sweet floral with hints of fruit and pear, almost rose-like"
+  },
+  {
+   "name": "Germacrene-B",
+   "cerebral": 0.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "an unusual woody-herbal undertone, slightly earthy and dry"
+  },
+  {
+   "name": "Guaiol",
+   "cerebral": 0.0,
+   "somatic": -3.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": -0.25,
+   "clarity": 0.0,
+   "aroma": "cool pine resin softened by rose and weathered wood"
+  },
+  {
+   "name": "Alpha-Humulene",
+   "cerebral": 0.0,
+   "somatic": -2.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "an earthy hop character, woody and slightly bitter, like a brewer's cellar"
+  },
+  {
+   "name": "Isopulegol",
+   "cerebral": 1.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.5,
+   "aroma": "cool mint with a hint of pepper"
+  },
+  {
+   "name": "Limonene",
+   "cerebral": 4.0,
+   "somatic": 0.0,
+   "threshold": 0.1,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.5,
+   "aroma": "a bright burst of citrus — lemon zest and orange peel, immediately energizing"
+  },
+  {
+   "name": "Linalool",
+   "cerebral": -1.0,
+   "somatic": -5.0,
+   "threshold": 0.08,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "a calming wash of lavender and sweet floral that settles immediately"
+  },
+  {
+   "name": "Menthol",
+   "cerebral": 0.0,
+   "somatic": -2.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "sharp cooling mint, bright and clean"
+  },
+  {
+   "name": "Nerolidol",
+   "cerebral": -1.0,
+   "somatic": -5.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": -0.5,
+   "clarity": 0.0,
+   "aroma": "a soft woody undercurrent with hints of apple bark and dried flowers"
+  },
+  {
+   "name": "Ocimene",
+   "cerebral": 3.0,
+   "somatic": 0.0,
+   "threshold": 0.1,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "a sweet herbal lift, basil and ripe mango with a clean minty edge"
+  },
+  {
+   "name": "Phellandrene",
+   "cerebral": 2.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.5,
+   "aroma": "minty pine with a faint citrus snap"
+  },
+  {
+   "name": "Sabinene",
+   "cerebral": 2.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "sharp peppery pine with a faint citrus snap"
+  },
+  {
+   "name": "Selinadienes",
+   "cerebral": 0.0,
+   "somatic": -1.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": -0.25,
+   "clarity": 0.0,
+   "aroma": "a distinctive woody-cellar character, deep and grounding"
+  },
+  {
+   "name": "Terpinene",
+   "cerebral": 3.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "sharp citrus-pine with a turpentine edge"
+  },
+  {
+   "name": "Terpineol",
+   "cerebral": 1.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "lilac and pine with a soft floral sweetness"
+  },
+  {
+   "name": "Terpinolene",
+   "cerebral": 5.0,
+   "somatic": 0.0,
+   "threshold": 0.15,
+   "volatility": 0.5,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "a complex layered aroma — herbal, faintly apple, lilac, with a curl of smoke"
+  },
+  {
+   "name": "Valencene",
+   "cerebral": 3.0,
+   "somatic": 0.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.0,
+   "aroma": "a vivid sweet orange character with grapefruit brightness"
+  },
+  {
+   "name": "Beta-Caryophyllene",
+   "cerebral": 1.0,
+   "somatic": -3.0,
+   "threshold": 0.05,
+   "volatility": 0.0,
+   "density": 0.0,
+   "clarity": 0.25,
+   "aroma": "warm black pepper and spicy wood with clove-like depth"
+  },
+  {
+   "name": "Beta-Myrcene",
+   "cerebral": -2.0,
+   "somatic": -5.0,
+   "threshold": 0.05,
+   "volatility": 0.5,
+   "density": -0.5,
+   "clarity": -0.25,
+   "aroma": "earthy musk, ripe tropical fruit, herbal hops, damp forest floor"
+  },
+  {
+   "name": "Alpha-Terpinene",
+   "cerebral": 3,
+   "somatic": 0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0,
+   "clarity": 0.25,
+   "aroma": "sharp citrus-pine, warmer than gamma"
+  },
+  {
+   "name": "Bergamotene",
+   "cerebral": -1,
+   "somatic": -3,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "warm woody bergamot, faint citrus-rind sweetness"
+  },
+  {
+   "name": "Cadinene",
+   "cerebral": 0,
+   "somatic": -3,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": -0.25,
+   "clarity": 0,
+   "aroma": "deep cedar and herbal undergrowth"
+  },
+  {
+   "name": "Caryophyllene-Oxide",
+   "cerebral": -1,
+   "somatic": -3,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "dry peppery wood with a cool herbaceous edge"
+  },
+  {
+   "name": "Citral",
+   "cerebral": 3,
+   "somatic": 0,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0.25,
+   "aroma": "sharp lemon-lime with bright green sweetness"
+  },
+  {
+   "name": "Citronellol",
+   "cerebral": 0,
+   "somatic": -1,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "rose-lemon, soft floral citrus"
+  },
+  {
+   "name": "D-Limonene",
+   "cerebral": 4,
+   "somatic": 0,
+   "threshold": 0.1,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0.5,
+   "aroma": "a bright burst of citrus — lemon zest and orange peel, immediately energizing"
+  },
+  {
+   "name": "Eugenol",
+   "cerebral": 0,
+   "somatic": -1,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "warm clove and sweet spice"
+  },
+  {
+   "name": "Gamma-Terpinene",
+   "cerebral": 3,
+   "somatic": 0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0,
+   "clarity": 0.25,
+   "aroma": "sharp citrus-pine with a turpentine edge"
+  },
+  {
+   "name": "Isoborneol",
+   "cerebral": 0,
+   "somatic": -2,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "camphor-cool, slightly piney"
+  },
+  {
+   "name": "Methyl-Isovalerate",
+   "cerebral": 1,
+   "somatic": 0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "sharp green apple and fermented sweetness"
+  },
+  {
+   "name": "Nerol",
+   "cerebral": 0,
+   "somatic": -1,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "sweet rose with a faint lemon undercurrent"
+  },
+  {
+   "name": "Nookatone",
+   "cerebral": 2,
+   "somatic": 0,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "grapefruit-citrus with subtle woody depth"
+  },
+  {
+   "name": "Octanol",
+   "cerebral": 0,
+   "somatic": -2,
+   "threshold": 0.05,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": "soft fatty alcohol, gently floral"
+  },
+  {
+   "name": "Phytol",
+   "cerebral": -1,
+   "somatic": -4,
+   "threshold": 0.1,
+   "volatility": 0,
+   "density": -0.5,
+   "clarity": 0,
+   "aroma": "a fresh green note, balsamic and grassy like cut hay"
+  },
+  {
+   "name": "Pulegone",
+   "cerebral": -1,
+   "somatic": -4,
+   "threshold": 0.1,
+   "volatility": 0,
+   "density": -0.25,
+   "clarity": 0,
+   "aroma": "minty pennyroyal, sharp herbal, slightly camphorous"
+  },
+  {
+   "name": "Thujene",
+   "cerebral": 2,
+   "somatic": 0,
+   "threshold": 0.05,
+   "volatility": 0.25,
+   "density": 0,
+   "clarity": 0.25,
+   "aroma": "warm woody-pine with a slight medicinal edge"
+  },
+  {
+   "name": "(none)",
+   "cerebral": 0,
+   "somatic": 0,
+   "threshold": 0,
+   "volatility": 0,
+   "density": 0,
+   "clarity": 0,
+   "aroma": ""
+  }
  ],
- synergies: [
-  {a:"Limonene",b:"Pinene",cerebral:1,somatic:0},{a:"Limonene",b:"Alpha-Pinene",cerebral:1,somatic:0},
-  {a:"D-Limonene",b:"Pinene",cerebral:1,somatic:0},{a:"Limonene",b:"Terpinolene",cerebral:1,somatic:0},
-  {a:"D-Limonene",b:"Terpinolene",cerebral:1,somatic:0},{a:"Pinene",b:"Terpinolene",cerebral:1,somatic:0},
-  {a:"Alpha-Pinene",b:"Terpinolene",cerebral:1,somatic:0},{a:"Ocimene",b:"Terpinolene",cerebral:.5,somatic:0},
-  {a:"Eucalyptol",b:"Pinene",cerebral:.5,somatic:0},{a:"Eucalyptol",b:"Alpha-Pinene",cerebral:.5,somatic:0},
-  {a:"Beta-Pinene",b:"Limonene",cerebral:.5,somatic:0},{a:"Limonene",b:"Ocimene",cerebral:.5,somatic:0},
-  {a:"Limonene",b:"Valencene",cerebral:.5,somatic:0},{a:"Beta-Myrcene",b:"Linalool",cerebral:0,somatic:-1},
-  {a:"Beta-Myrcene",b:"Nerolidol",cerebral:0,somatic:-1},{a:"Linalool",b:"Nerolidol",cerebral:0,somatic:-1},
-  {a:"Beta-Caryophyllene",b:"Alpha-Humulene",cerebral:0,somatic:-.5},
-  {a:"Beta-Caryophyllene",b:"Linalool",cerebral:0,somatic:-.5},
-  {a:"Beta-Caryophyllene",b:"Beta-Myrcene",cerebral:0,somatic:-.5},
-  {a:"Bisabolol",b:"Beta-Myrcene",cerebral:0,somatic:-.5},{a:"Bisabolol",b:"Linalool",cerebral:0,somatic:-.5},
-  {a:"Bisabolol",b:"Beta-Caryophyllene",cerebral:0,somatic:-.5},
-  {a:"Pinene",b:"Beta-Myrcene",cerebral:-.5,somatic:-.5},{a:"Alpha-Pinene",b:"Beta-Myrcene",cerebral:-.5,somatic:-.5},
-  {a:"Limonene",b:"Beta-Myrcene",cerebral:-.5,somatic:-.5},{a:"Pinene",b:"Linalool",cerebral:-.5,somatic:-.5},
-  {a:"Alpha-Humulene",b:"Beta-Myrcene",cerebral:0,somatic:-.5},{a:"Phytol",b:"Beta-Myrcene",cerebral:0,somatic:-1},
-  {a:"Guaiol",b:"Beta-Caryophyllene",cerebral:0,somatic:-.5},{a:"Limonene",b:"Geraniol",cerebral:.5,somatic:0},
-  {a:"Limonene",b:"Citronellol",cerebral:.5,somatic:0}
+ "synergies": [
+  {
+   "a": "Limonene",
+   "b": "Pinene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "DIRECT",
+   "note": "LaVigne 2021: Limonene reduces THC-induced anxiety; with Pinene's AChE inhibition enhances clarity"
+  },
+  {
+   "a": "Limonene",
+   "b": "Alpha-Pinene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "DIRECT",
+   "note": "Same as Limonene+Pinene; Alpha-Pinene is the more bioactive enantiomer"
+  },
+  {
+   "a": "D-Limonene",
+   "b": "Pinene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "DIRECT",
+   "note": "D-Limonene is the dominant isomer in cannabis; same anxiolytic-clarifying pair effect"
+  },
+  {
+   "a": "Limonene",
+   "b": "Terpinolene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Both elevate serotonergic tone via 5-HT1A; combined effect on mood and cerebral lift"
+  },
+  {
+   "a": "D-Limonene",
+   "b": "Terpinolene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Same mechanism as Limonene+Terpinolene"
+  },
+  {
+   "a": "Pinene",
+   "b": "Terpinolene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Pinene AChE inhibition + Terpinolene's stimulating profile; common in sativa cultivars"
+  },
+  {
+   "a": "Alpha-Pinene",
+   "b": "Terpinolene",
+   "cerebral": 1,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Same mechanism as Pinene+Terpinolene"
+  },
+  {
+   "a": "Ocimene",
+   "b": "Terpinolene",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Both contribute to sativa-leaning experience; observed co-occurrence in Jack Herer chemotypes"
+  },
+  {
+   "a": "Eucalyptol",
+   "b": "Pinene",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Both AChE inhibitors; combined effect on mental clarity and respiratory bronchodilation"
+  },
+  {
+   "a": "Eucalyptol",
+   "b": "Alpha-Pinene",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Same AChE-pathway synergy"
+  },
+  {
+   "a": "Beta-Pinene",
+   "b": "Limonene",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Beta-Pinene is less potent than Alpha; still contributes clarity with Limonene"
+  },
+  {
+   "a": "Limonene",
+   "b": "Ocimene",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Both serotonergic; Ocimene adds tropical-sweet aromatic character"
+  },
+  {
+   "a": "Limonene",
+   "b": "Valencene",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "INFERRED",
+   "note": "Valencene is citrus-family; complementary mood elevation"
+  },
+  {
+   "a": "Beta-Myrcene",
+   "b": "Linalool",
+   "cerebral": 0,
+   "somatic": -1,
+   "evidence": "DIRECT",
+   "note": "Russo 2011: Both GABAergic; synergistic sedation is foundational evidence for entourage effect"
+  },
+  {
+   "a": "Beta-Myrcene",
+   "b": "Nerolidol",
+   "cerebral": 0,
+   "somatic": -1,
+   "evidence": "INFERRED",
+   "note": "Both well-documented sedatives; Nerolidol enhances GABAergic tone"
+  },
+  {
+   "a": "Linalool",
+   "b": "Nerolidol",
+   "cerebral": 0,
+   "somatic": -1,
+   "evidence": "DIRECT",
+   "note": "Linalool 5-HT1A + Nerolidol GABA potentiation; classic anxiolytic-sedative pair"
+  },
+  {
+   "a": "Beta-Caryophyllene",
+   "b": "Alpha-Humulene",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "DIRECT",
+   "note": "Russo 2011, Gertsch 2008: Both CB2 agonists; well-documented anti-inflammatory synergy"
+  },
+  {
+   "a": "Beta-Caryophyllene",
+   "b": "Linalool",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "CB2 + GABA pathway combination; anxiolytic without strong sedation"
+  },
+  {
+   "a": "Beta-Caryophyllene",
+   "b": "Beta-Myrcene",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "CB2 + GABA; the canonical 'workhorse hybrid' synergy"
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Beta-Myrcene",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Both calming; Bisabolol potentiates GABA more than its standalone valence suggests"
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Linalool",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Both anxiolytic; chamomile-lavender combination evidence-based in aromatherapy literature"
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Beta-Caryophyllene",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Bisabolol GABA + CB2 anti-inflammatory; gentle calming combination"
+  },
+  {
+   "a": "Pinene",
+   "b": "Beta-Myrcene",
+   "cerebral": -0.5,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Opposing terpenes attenuate each other; classic indica-leaning hybrid moderation"
+  },
+  {
+   "a": "Alpha-Pinene",
+   "b": "Beta-Myrcene",
+   "cerebral": -0.5,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Same opposing-effect attenuation"
+  },
+  {
+   "a": "Limonene",
+   "b": "Beta-Myrcene",
+   "cerebral": -0.5,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Citrus-lift partially offset by Myrcene's sedation; net experience is balanced hybrid"
+  },
+  {
+   "a": "Pinene",
+   "b": "Linalool",
+   "cerebral": -0.5,
+   "somatic": -0.5,
+   "evidence": "INFERRED",
+   "note": "Pinene clarity moderated by Linalool sedation; produces 'calm-alert' state"
+  },
+  {
+   "a": "Alpha-Humulene",
+   "b": "Beta-Myrcene",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "THEORETICAL",
+   "note": "Both grounding terpenes; appetite-suppressing combination per Russo 2011"
+  },
+  {
+   "a": "Phytol",
+   "b": "Beta-Myrcene",
+   "cerebral": 0,
+   "somatic": -1,
+   "evidence": "THEORETICAL",
+   "note": "Phytol is a tocopherol precursor with mild sedation; with Myrcene compounds the effect"
+  },
+  {
+   "a": "Guaiol",
+   "b": "Beta-Caryophyllene",
+   "cerebral": 0,
+   "somatic": -0.5,
+   "evidence": "THEORETICAL",
+   "note": "Both grounding; reported co-occurrence in indica-leaning cultivars"
+  },
+  {
+   "a": "Limonene",
+   "b": "Geraniol",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "THEORETICAL",
+   "note": "Citrus + rose-floral both serotonergic; mood elevation observed in aromatherapy"
+  },
+  {
+   "a": "Limonene",
+   "b": "Citronellol",
+   "cerebral": 0.5,
+   "somatic": 0,
+   "evidence": "THEORETICAL",
+   "note": "Citrus + rose-citrus both mild stimulants; complementary character"
+  }
+ ],
+ "blends": [
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Myrcene",
+   "key": "Caryophyllene|Limonene|Myrcene",
+   "desc": "Cracked black pepper and bright citrus woven into an earthy, ripe-mango base. The most common BC chemistry — grounding without sedating, lifting without sharpness, the everyday hybrid character."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Linalool",
+   "key": "Caryophyllene|Limonene|Linalool",
+   "desc": "Warm pepper and clean citrus softened by a calming lavender drift. Anti-inflammatory body ease with a quiet anxiolytic edge — uplift without anxiety."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Myrcene",
+   "c": "Pinene",
+   "key": "Caryophyllene|Myrcene|Pinene",
+   "desc": "Peppery spice and earthy musk grounded by sharp forest pine and rosemary. The pine cuts through the heaviness, producing a grounded-but-alert character."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Humulene",
+   "c": "Limonene",
+   "key": "Caryophyllene|Humulene|Limonene",
+   "desc": "Black pepper meets earthy hops — bitter, woody, almost medicinal — lifted by a clean citrus brightness. Anti-inflammatory and appetite-suppressing chemistry at full strength."
+  },
+  {
+   "a": "Limonene",
+   "b": "Myrcene",
+   "c": "Pinene",
+   "key": "Limonene|Myrcene|Pinene",
+   "desc": "Bright citrus, ripe earthy musk, and sharp forest pine layered together. The pine and citrus pull upward; the myrcene grounds. Active but never racing."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Farnesene",
+   "c": "Limonene",
+   "key": "Caryophyllene|Farnesene|Limonene",
+   "desc": "Warm pepper laid over crisp green apple and bright citrus zest. Fresher than most caryophyllene-dominant profiles — orchard floor after spring rain."
+  },
+  {
+   "a": "Limonene",
+   "b": "Linalool",
+   "c": "Myrcene",
+   "key": "Limonene|Linalool|Myrcene",
+   "desc": "A bright citrus burst softened by a lavender wash, with earthy musk grounding the finish. Uplifting and calming at once — the chemistry of 'lifted but not anxious.'"
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Pinene",
+   "key": "Caryophyllene|Limonene|Pinene",
+   "desc": "Cracked pepper, lemon zest, and sharp pine — three classic terpenes in perfect balance. Among the most alertness-oriented BC chemistries: focused, clean, daytime-leaning."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Farnesene",
+   "c": "Myrcene",
+   "key": "Caryophyllene|Farnesene|Myrcene",
+   "desc": "Black pepper and clove threaded with crisp green apple, anchored by ripe earthy musk. Reads autumnal — orchard, spice cabinet, dampened wood."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Humulene",
+   "c": "Myrcene",
+   "key": "Caryophyllene|Humulene|Myrcene",
+   "desc": "A brewer's cellar nose — earthy hops, bitter wood, warm pepper — with ripe musk underneath. Deeply grounding, slightly medicinal; the appetite-suppressing chemistry."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Myrcene",
+   "c": "Terpinolene",
+   "key": "Caryophyllene|Myrcene|Terpinolene",
+   "desc": "Peppery warmth and earthy musk lifted by complex herbal-apple-smoky character. Surprising sativa-leaning lift from a mostly-grounding base. Distinctive."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Linalool",
+   "c": "Myrcene",
+   "key": "Caryophyllene|Linalool|Myrcene",
+   "desc": "Black pepper softened by calming lavender, with ripe earthy musk weaving through both. The chemistry of evening unwinding — anti-inflammatory body ease with floral comfort."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Terpinolene",
+   "key": "Caryophyllene|Limonene|Terpinolene",
+   "desc": "Warm pepper and bright citrus brightened by complex herbal-apple-smoky character. Sophisticated, energizing, distinctive among uplifting chemistries."
+  },
+  {
+   "a": "Myrcene",
+   "b": "Ocimene",
+   "c": "Terpinolene",
+   "key": "Myrcene|Ocimene|Terpinolene",
+   "desc": "Ripe earthy musk lifted by sweet basil-mango and complex herbal-apple character. A hybrid behavior — sweet uplift balanced against a heavy base."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Selinadienes",
+   "key": "Caryophyllene|Limonene|Selinadienes",
+   "desc": "Pepper and citrus over an unusual woody, cellar-like undertone. Selinadienes adds depth and grounding that most chemistries lack — distinctive and slightly indica-leaning."
+  },
+  {
+   "a": "Humulene",
+   "b": "Limonene",
+   "c": "Myrcene",
+   "key": "Humulene|Limonene|Myrcene",
+   "desc": "Earthy hops, bright citrus, and ripe musk in equal measure. Like a craft beer with a citrus twist and an earthy finish — grounding but lifted."
+  },
+  {
+   "a": "Limonene",
+   "b": "Myrcene",
+   "c": "Ocimene",
+   "key": "Limonene|Myrcene|Ocimene",
+   "desc": "Bright citrus, sweet basil-mango, and ripe earthy musk. Tropical and uplifting on the nose, settling into a hybrid body."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Farnesene",
+   "c": "Linalool",
+   "key": "Caryophyllene|Farnesene|Linalool",
+   "desc": "Black pepper, crisp green apple, and calming lavender. Soft, slightly sweet, evening-leaning. The chemistry of gentle wind-down."
+  },
+  {
+   "a": "Limonene",
+   "b": "Linalool",
+   "c": "Pinene",
+   "key": "Limonene|Linalool|Pinene",
+   "desc": "Bright citrus and sharp forest pine cooled by lavender florals. Energizing yet calming — the chemistry of 'focused but not anxious.'"
+  },
+  {
+   "a": "Limonene",
+   "b": "Myrcene",
+   "c": "Terpinolene",
+   "key": "Limonene|Myrcene|Terpinolene",
+   "desc": "Bright citrus and complex herbal-smoky character over ripe earthy musk. Sophisticated lift with a grounded base — sativa-leaning without losing weight."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Ocimene",
+   "c": "Terpinolene",
+   "key": "Caryophyllene|Ocimene|Terpinolene",
+   "desc": "Pepper, sweet basil-mango, and complex herbal-apple — three sativa-leaning terpenes threaded through warm spice. Uplifting, complex, distinctive."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Pinene",
+   "c": "Terpinolene",
+   "key": "Caryophyllene|Pinene|Terpinolene",
+   "desc": "Warm pepper, sharp forest pine, and complex herbal character. Three terpenes pulling upward in different directions — focused, alert, multidimensional."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Nerolidol",
+   "key": "Caryophyllene|Limonene|Nerolidol",
+   "desc": "Pepper and citrus softened by a woody, apple-bark undercurrent. The nerolidol adds depth and subtle relaxation without sedation."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Humulene",
+   "c": "Pinene",
+   "key": "Caryophyllene|Humulene|Pinene",
+   "desc": "Black pepper, earthy hops, and sharp pine. Grounding and clarifying at once — slightly medicinal, surprisingly alert."
+  },
+  {
+   "a": "Myrcene",
+   "b": "Ocimene",
+   "c": "Pinene",
+   "key": "Myrcene|Ocimene|Pinene",
+   "desc": "Ripe earthy musk lifted by sweet basil-mango and sharp pine. The pine and ocimene fight the myrcene's heaviness — a hybrid character that can lean either way."
+  },
+  {
+   "a": "Farnesene",
+   "b": "Limonene",
+   "c": "Myrcene",
+   "key": "Farnesene|Limonene|Myrcene",
+   "desc": "Crisp green apple, bright citrus, and ripe earthy musk. Fresh and orchard-like on top, earthy and grounded underneath."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Myrcene",
+   "c": "Ocimene",
+   "key": "Caryophyllene|Myrcene|Ocimene",
+   "desc": "Pepper, ripe musk, and sweet basil-mango. A warm hybrid character — comfortable, slightly tropical, neither sharp nor sedating."
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Caryophyllene",
+   "c": "Limonene",
+   "key": "Bisabolol|Caryophyllene|Limonene",
+   "desc": "Honeyed chamomile and warm pepper threaded with bright citrus. The most gently calming uplift in the catalog — anxiolytic without sedation."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Germacrene_B",
+   "c": "Limonene",
+   "key": "Caryophyllene|Germacrene_B|Limonene",
+   "desc": "Pepper and citrus with an unusual woody-herbal undertone from germacrene. Slightly more complex than the everyday hybrid character — uplift with a twist."
+  },
+  {
+   "a": "Limonene",
+   "b": "Myrcene",
+   "c": "Nerolidol",
+   "key": "Limonene|Myrcene|Nerolidol",
+   "desc": "Bright citrus, ripe musk, and soft woody-apple-bark depth. Lifted up front, grounded underneath, with a quiet calming finish."
+  },
+  {
+   "a": "Myrcene",
+   "b": "Pinene",
+   "c": "Terpinolene",
+   "key": "Myrcene|Pinene|Terpinolene",
+   "desc": "Ripe earthy musk, sharp pine, and complex herbal-apple-smoky character. Pine and terpinolene cut hard against the myrcene — a sativa-leaning hybrid with surprising lift."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Humulene",
+   "c": "Terpinolene",
+   "key": "Caryophyllene|Humulene|Terpinolene",
+   "desc": "Black pepper, earthy hops, and complex herbal-apple. The hop character adds bitterness and depth that most terpinolene chemistries lack."
+  },
+  {
+   "a": "Farnesene",
+   "b": "Limonene",
+   "c": "Linalool",
+   "key": "Farnesene|Limonene|Linalool",
+   "desc": "Crisp green apple, bright citrus, and calming lavender. Fresh, uplifting, then quiet — orchard daylight settling into evening."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Farnesene",
+   "c": "Humulene",
+   "key": "Caryophyllene|Farnesene|Humulene",
+   "desc": "Black pepper, crisp green apple, and earthy hops. An unusual three-way grounding chemistry — woody, slightly bitter, autumnal."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Myrcene",
+   "c": "Selinadienes",
+   "key": "Caryophyllene|Myrcene|Selinadienes",
+   "desc": "Pepper, ripe earthy musk, and a distinctive woody-cellar undertone. Heavy and grounding with an old-cellar character — sleep-leaning."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Humulene",
+   "c": "Linalool",
+   "key": "Caryophyllene|Humulene|Linalool",
+   "desc": "Black pepper, earthy hops, and calming lavender. A quietly medicinal nose — anti-inflammatory, anxiolytic, slightly bitter. Evening chemistry without heavy sedation."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Pinene",
+   "c": "Pinene",
+   "key": "Caryophyllene|Pinene|Pinene",
+   "desc": "Warm pepper anchoring a sharp double-pine character — fresh needles and resinous depth. Among the most focus-oriented hybrid chemistries — alert, clarifying, almost alpine."
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Guaiol",
+   "c": "Myrcene",
+   "key": "Bisabolol|Guaiol|Myrcene",
+   "desc": "Honeyed chamomile, cool pine resin, and ripe earthy musk. A quiet, apothecary-like nose — deeply calming without the lavender sweetness most calming chemistries lean on."
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Caryophyllene",
+   "c": "Humulene",
+   "key": "Bisabolol|Caryophyllene|Humulene",
+   "desc": "Honeyed chamomile, warm pepper, and earthy hops. Gentle anti-inflammatory chemistry — quietly grounding, slightly bitter on the finish."
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Caryophyllene",
+   "c": "Myrcene",
+   "key": "Bisabolol|Caryophyllene|Myrcene",
+   "desc": "Honeyed chamomile and black pepper threaded through ripe earthy musk. Calming and grounding without sedation — a soft hybrid character."
+  },
+  {
+   "a": "Bisabolol",
+   "b": "Limonene",
+   "c": "Myrcene",
+   "key": "Bisabolol|Limonene|Myrcene",
+   "desc": "Chamomile sweetness lifted by bright citrus, anchored by ripe musk. Lifted and calming at once — uplifted relaxation without sharpness."
+  },
+  {
+   "a": "Limonene",
+   "b": "Linalool",
+   "c": "Nerolidol",
+   "key": "Limonene|Linalool|Nerolidol",
+   "desc": "Bright citrus, calming lavender, and soft woody apple-bark depth. Three calming-to-neutral terpenes layered for a quiet, mellow experience — daytime relaxation."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Ocimene",
+   "key": "Caryophyllene|Limonene|Ocimene",
+   "desc": "Warm pepper, bright citrus, and sweet basil-mango. A tropical hybrid character — uplifting and comfortable, leaning toward daytime."
+  },
+  {
+   "a": "Caryophyllene",
+   "b": "Limonene",
+   "c": "Terpineol",
+   "key": "Caryophyllene|Limonene|Terpineol",
+   "desc": "Black pepper, lemon zest, and lilac florals — an unusual three-way with the terpineol adding gentle floral lift. Subtle, multidimensional, daytime-leaning."
+  },
+  {
+   "a": "Limonene",
+   "b": "Pinene",
+   "c": "Pinene",
+   "key": "Limonene|Pinene|Pinene",
+   "desc": "Bright citrus and sharp double-pine — lemon zest, fresh needles, mountain air. Among the most uplifting, clarifying chemistries in the catalog — pure daytime nose."
+  },
+  {
+   "a": "Limonene",
+   "b": "Pinene",
+   "c": "Terpinolene",
+   "key": "Limonene|Pinene|Terpinolene",
+   "desc": "Bright citrus, sharp forest pine, and complex layered herbal-apple-smoky character. Three energizing terpenes pulling upward together — distinctively sativa, sophisticated rather than aggressive."
+  }
  ]
 };
+</script>
 
+<script>
 /* ── the engine: faithful port of the Calculator sheet ── */
-function buildTriaxEngine(DATA){
-  const db={}; DATA.database.forEach(r=>db[r.name]=r);
-  const look=n=>db[n]||{name:n,cerebral:0,somatic:0,threshold:0,volatility:0,density:0,clarity:0,aroma:""};
-  const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-  const xlRound=v=>v>=0?Math.floor(v+.5):Math.ceil(v-.5);
+function buildTriaxEngine(DATA) {
+  const dbByName = {};
+  DATA.database.forEach(r => { dbByName[r.name] = r; });
 
-  const CER=["deeply suppressed","dulled","mildly clouded","soft","quiet","clear","gently lifted","alert","stimulating","sharp","electric"];
-  const SOM=["narcotic, immobilizing","heavy, sedating","deeply relaxed","relaxed","grounded","neutral","subtle body lift","light, mobile","energizing","very energizing","activating"];
-  const OVR=["Narcotic Gravity","Tranquilizing","Sedative","Heavy Hybrid","Grounded / Calm","Balanced","Bright / Light Uplift","Upbeat Hybrid","Functional Stimulating","High Velocity","Electric Cerebral"];
-  const lbl=(arr,s)=>arr[clamp(s,-5,5)+5];
-  const title=s=>s.replace(/(^|,\s*)([a-z])/g,(m,sep,ch)=>sep+ch.toUpperCase());
+  function lookup(name) {
+    return dbByName[name] || { name, cerebral: 0, somatic: 0, threshold: 0, volatility: 0, density: 0, clarity: 0, aroma: "" };
+  }
 
-  function calculate(i){
-    const t1=i.t1,t2=i.t2,t3=i.t3||"(none)";
-    const p1=+i.p1||0,p2=+i.p2||0,p3=+i.p3||0;
-    const thc=+i.thc||0,cbd=+i.cbd||0,tt=+i.totalTerp||0;
-    const species=i.species||"Hybrid";
-    const d1=look(t1),d2=look(t2),d3=look(t3);
-    const sum=p1+p2+p3;
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-    // 1 · base vector
-    let bC,bS;
-    if(sum>0){
-      const a1=p1>=d1.threshold,a2=p2>=d2.threshold,a3=p3>=d3.threshold;
-      bC=(a1?d1.cerebral:0)*(p1/sum)+(a2?d2.cerebral:0)*(p2/sum)+(a3?d3.cerebral:0)*(p3/sum);
-      bS=(a1?d1.somatic:0)*(p1/sum)+(a2?d2.somatic:0)*(p2/sum)+(a3?d3.somatic:0)*(p3/sum);
+  // Excel ROUND: round half away from zero
+  function excelRound(v) {
+    return v >= 0 ? Math.floor(v + 0.5) : Math.ceil(v - 0.5);
+  }
+
+  function stripPrefix(name) {
+    if (!name) return name;
+    if (name.startsWith("Beta-")) return name.slice(5);
+    if (name.startsWith("Alpha-")) return name.slice(6);
+    return name;
+  }
+
+  const CEREBRAL_LABELS = ["deeply suppressed", "dulled", "mildly clouded", "soft", "quiet", "clear", "gently lifted", "alert", "stimulating", "sharp", "electric"];
+  const SOMATIC_LABELS = ["narcotic, immobilizing", "heavy, sedating", "deeply relaxed", "relaxed", "grounded", "neutral", "subtle body lift", "light, mobile", "energizing", "very energizing", "activating"];
+  const OVERALL_LABELS = ["Narcotic Gravity (Very Sedating)", "Tranquilizing", "Sedative", "Heavy Hybrid", "Grounded / Calm", "Balanced", "Bright / Light Uplift", "Upbeat Hybrid", "Functional Stimulating", "High Velocity", "Electric Cerebral (Very Energizing)"];
+
+  function chooseLabel(arr, score) {
+    return arr[clamp(score, -5, 5) + 5];
+  }
+
+  function profileType(cer, som) {
+    if (cer >= 3 && som >= -1) return "Heady Sativa";
+    if (cer >= 3 && som <= -2) return "Energetic Hybrid";
+    if (cer <= -1 && som <= -3) return "Narcotic Indica";
+    if (cer <= 1 && cer >= -1 && som <= -3) return "Couch-Lock Indica";
+    if (cer <= 1 && cer >= -1 && som <= -1) return "Body-Forward Hybrid";
+    if (cer >= 1 && som <= -1) return "Functional Hybrid";
+    if (cer <= 1 && cer >= -1 && som <= 1 && som >= -1) return "Balanced";
+    return "Unusual profile";
+  }
+
+  function fmt1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+
+  function calculate(input) {
+    const t1 = input.t1, t2 = input.t2, t3 = input.t3 || "(none)";
+    const p1 = Number(input.p1) || 0, p2 = Number(input.p2) || 0, p3 = Number(input.p3) || 0;
+    const thc = Number(input.thc) || 0;
+    const cbd = Number(input.cbd) || 0;
+    const totalTerp = Number(input.totalTerp) || 0;
+    const species = input.species || "Hybrid"; // "Indica" | "Sativa" | "Hybrid"
+
+    const d1 = lookup(t1), d2 = lookup(t2), d3 = lookup(t3);
+
+    const above1 = p1 >= d1.threshold;
+    const above2 = p2 >= d2.threshold;
+    const above3 = p3 >= d3.threshold;
+
+    const sumP = p1 + p2 + p3;
+
+    // Step 1: Base Vector
+    let baseCer, baseSom;
+    if (sumP > 0) {
+      baseCer = (above1 ? d1.cerebral : 0) * (p1 / sumP) + (above2 ? d2.cerebral : 0) * (p2 / sumP) + (above3 ? d3.cerebral : 0) * (p3 / sumP);
+      baseSom = (above1 ? d1.somatic : 0) * (p1 / sumP) + (above2 ? d2.somatic : 0) * (p2 / sumP) + (above3 ? d3.somatic : 0) * (p3 / sumP);
     } else {
-      bC=(d1.cerebral+d2.cerebral+d3.cerebral)/3;
-      bS=(d1.somatic+d2.somatic+d3.somatic)/3;
+      baseCer = (d1.cerebral + d2.cerebral + d3.cerebral) / 3;
+      baseSom = (d1.somatic + d2.somatic + d3.somatic) / 3;
     }
-    // 2 · synergy
-    const sel=new Set([t1,t2,t3]); let sC=0,sS=0;
-    DATA.synergies.forEach(r=>{ if(sel.has(r.a)&&sel.has(r.b)){sC+=r.cerebral;sS+=r.somatic;} });
-    // 3 · conflict
-    const cv=[d1.cerebral,d2.cerebral,d3.cerebral], sv=[d1.somatic,d2.somatic,d3.somatic];
-    const kC=(Math.max(...cv)>=4&&Math.min(...cv)<=-4)?-1:0;
-    const kS=(Math.max(...sv)>=4&&Math.min(...sv)<=-4)?-1:0;
-    // 4-6 · volatility, density, clarity
-    const vC=d1.volatility+d2.volatility+d3.volatility;
-    const dS=-(d1.density+d2.density+d3.density);
-    const lC=d1.clarity+d2.clarity+d3.clarity;
-    // 7 · raw
-    const cRaw=bC+sC+kC+vC+lC, sRaw=bS+sS+kS+dS;
-    const oRaw=(Math.abs(cRaw)+Math.abs(sRaw))===0?0:
-      (Math.abs(cRaw)*cRaw+Math.abs(sRaw)*sRaw)/(Math.abs(cRaw)+Math.abs(sRaw));
-    // modulators
-    const load=clamp(.5+(tt/1.5)*.5,.5,1.5);
-    const amp=clamp(1+((thc-20)/20)*.4,.6,1.4);
-    const damp=thc===0?1:Math.max(.6,1-Math.min(1,cbd/thc)*.4);
-    // 8 · final
-    let cF=clamp(xlRound(cRaw*load*amp*damp),-5,5)||0;
-    let sF=clamp(xlRound(sRaw*load*amp*damp),-5,5)||0;
-    let oF=clamp(xlRound(oRaw*load*amp*damp),-5,5)||0;
-    // species nudge: +1 cerebral for Sativa, -1 somatic for Indica
-    const nC=species==="Sativa"?1:0, nS=species==="Indica"?-1:0;
-    if(nC||nS){
-      cF=clamp(cF+nC,-5,5)||0; sF=clamp(sF+nS,-5,5)||0;
-      const den=Math.abs(cF)+Math.abs(sF);
-      oF=clamp(xlRound(den===0?0:(Math.abs(cF)*cF+Math.abs(sF)*sF)/den),-5,5)||0;
+
+    // Step 2: Synergy
+    const selected = new Set([t1, t2, t3]);
+    let synCer = 0, synSom = 0;
+    DATA.synergies.forEach(row => {
+      if (selected.has(row.a) && selected.has(row.b)) {
+        synCer += row.cerebral;
+        synSom += row.somatic;
+      }
+    });
+
+    // Step 3: Conflict
+    const cerVals = [d1.cerebral, d2.cerebral, d3.cerebral];
+    const somVals = [d1.somatic, d2.somatic, d3.somatic];
+    const conflictCer = (Math.max(...cerVals) >= 4 && Math.min(...cerVals) <= -4) ? -1 : 0;
+    const conflictSom = (Math.max(...somVals) >= 4 && Math.min(...somVals) <= -4) ? -1 : 0;
+
+    // Steps 4-6: Volatility -> Cerebral, Density -> Somatic, Clarity -> Cerebral
+    const volCer = d1.volatility + d2.volatility + d3.volatility;
+    const densSom = -(d1.density + d2.density + d3.density);
+    const clarCer = d1.clarity + d2.clarity + d3.clarity;
+
+    // Step 7: Raw Score
+    const cerRaw = baseCer + synCer + conflictCer + volCer + 0 + clarCer;
+    const somRaw = baseSom + synSom + conflictSom + 0 + densSom + 0;
+    const overallRaw = (Math.abs(cerRaw) + Math.abs(somRaw) === 0) ? 0 :
+      (Math.abs(cerRaw) * cerRaw + Math.abs(somRaw) * somRaw) / (Math.abs(cerRaw) + Math.abs(somRaw));
+
+    // Modulators
+    const loadMultiplier = clamp(0.5 + (totalTerp / 1.5) * 0.5, 0.5, 1.5);
+    const thcAmplifier = clamp(1 + ((thc - 20) / 20) * 0.4, 0.6, 1.4);
+    const cbdDampener = thc === 0 ? 1 : Math.max(0.6, 1 - Math.min(1, cbd / thc) * 0.4);
+
+    const cerMod = cerRaw * loadMultiplier * thcAmplifier * cbdDampener;
+    const somMod = somRaw * loadMultiplier * thcAmplifier * cbdDampener;
+    const overallMod = overallRaw * loadMultiplier * thcAmplifier * cbdDampener;
+
+    // Step 8: Final Scores (the "|| 0" strips negative-zero display artifacts)
+    let cerFinal = clamp(excelRound(cerMod), -5, 5) || 0;
+    let somFinal = clamp(excelRound(somMod), -5, 5) || 0;
+    let overallFinal = clamp(excelRound(overallMod), -5, 5) || 0;
+
+    // Species Nudge — not part of the original per-terpene math; a small,
+    // EXACT +/-1 point adjustment for the strain label itself (genetics /
+    // expectation signal beyond what terpenes + cannabinoids capture on
+    // their own). Applied to the already-rounded final score, after every
+    // other modulator, so it's always precisely 1 point — never scaled up
+    // or down by THC/terpene load. Sativa: +1 Cerebral. Indica: -1 Somatic.
+    // Hybrid: no nudge. Overall is then re-derived from the nudged axes
+    // using the same weighted-blend shape as Overall Raw, since Overall is
+    // documented as "a derived view, not a separate calculation."
+    const speciesNudgeCer = species === "Sativa" ? 1 : 0;
+    const speciesNudgeSom = species === "Indica" ? -1 : 0;
+    cerFinal = clamp(cerFinal + speciesNudgeCer, -5, 5) || 0;
+    somFinal = clamp(somFinal + speciesNudgeSom, -5, 5) || 0;
+
+    if (speciesNudgeCer !== 0 || speciesNudgeSom !== 0) {
+      const denom = Math.abs(cerFinal) + Math.abs(somFinal);
+      const overallFromFinals = denom === 0 ? 0 : (Math.abs(cerFinal) * cerFinal + Math.abs(somFinal) * somFinal) / denom;
+      overallFinal = clamp(excelRound(overallFromFinals), -5, 5) || 0;
     }
+
+    const profile = profileType(cerFinal, somFinal);
+    const cerLabel = chooseLabel(CEREBRAL_LABELS, cerFinal);
+    const somLabel = chooseLabel(SOMATIC_LABELS, somFinal);
+    const overallLabel = chooseLabel(OVERALL_LABELS, overallFinal);
+
+    // Aroma prominence
+    function prominence(p) {
+      if (p === 0) return "—";
+      const share = p / sumP;
+      if (share >= 0.45) return "DOMINANT";
+      if (share >= 0.22) return "Supporting";
+      return "trace";
+    }
+
+    const aroma = [
+      { name: t1, prominence: prominence(p1), notes: d1.aroma },
+      { name: t2, prominence: prominence(p2), notes: d2.aroma },
+      { name: t3, prominence: prominence(p3), notes: d3.aroma }
+    ];
+
+    // Sommelier Blend
+    const strip1 = stripPrefix(t1), strip2 = stripPrefix(t2), strip3 = stripPrefix(t3);
+    const sorted = [strip1, strip2, strip3].slice().sort();
+    const blendKey = sorted.join("|");
+    const blendMatch = DATA.blends.find(b => b.key === blendKey);
+    let sommelierBlend;
+    if (blendMatch) {
+      sommelierBlend = blendMatch.desc;
+    } else {
+      const a1 = lookup(sorted[0]).aroma || "";
+      const a2 = lookup(sorted[1]).aroma || "";
+      const a3name = sorted[2];
+      const a3 = lookup(a3name).aroma || "";
+      const cap = a1.length ? a1[0].toUpperCase() + a1.slice(1) : a1;
+      let desc = cap + (a2 ? ", combined with " + a2 : "");
+      if (a3name && a3name !== "(none)" && a3) {
+        desc += ", and " + a3;
+      }
+      sommelierBlend = desc + ".";
+    }
+
+    // Strength Read
+    let strength = "";
+    if (totalTerp >= 2.5) strength += `Terpene-rich at ${fmt1(totalTerp)}% total — expect a vivid, pronounced experience. `;
+    else if (totalTerp >= 1.5) strength += `Moderate terpene load at ${fmt1(totalTerp)}% total — typical BC flower expression. `;
+    else if (totalTerp > 0) strength += `Light terpene load at ${fmt1(totalTerp)}% total — subtle expression. `;
+
+    if (thc >= 28) strength += `THC is high at ${fmt1(thc)}% — effects will lean toward both axis extremes. `;
+    else if (thc >= 18) strength += `THC at ${fmt1(thc)}% is typical — predicted effects track the ratings directly. `;
+    else if (thc > 0) strength += `THC at ${fmt1(thc)}% is mild — predicted effects may feel gentler than the ratings suggest. `;
+
+    if (thc > 0) {
+      const ratio = cbd / thc;
+      if (ratio >= 1) strength += `CBD-dominant chemistry (${fmt1(cbd)}% CBD) — expect strongly buffered, mild experience.`;
+      else if (ratio >= 0.3) strength += `Significant CBD content (${fmt1(cbd)}%) — softens both extremes.`;
+      else if (ratio >= 0.05) strength += `Modest CBD (${fmt1(cbd)}%) — slight modulation.`;
+      else strength += `Trace CBD — negligible modulation.`;
+    }
+
     return {
-      cerFinal:cF, somFinal:sF, overallFinal:oF,
-      cerLabel:title(lbl(CER,cF)), somLabel:title(lbl(SOM,sF)), overallLabel:lbl(OVR,oF)
+      baseCer, baseSom, synCer, synSom, conflictCer, conflictSom, volCer, densSom, clarCer,
+      speciesNudgeCer, speciesNudgeSom,
+      cerRaw, somRaw, overallRaw, loadMultiplier, thcAmplifier, cbdDampener,
+      cerMod, somMod, overallMod,
+      cerFinal, somFinal, overallFinal,
+      profile, cerLabel, somLabel, overallLabel,
+      aroma, sommelierBlend, strength
     };
   }
-  return {calculate,look};
+
+  return { calculate, lookup, stripPrefix };
 }
+
 const ENGINE = buildTriaxEngine(TRIAX_DATA);
 </script>
 <script>
@@ -475,16 +1609,27 @@ const widthPct  = s => Math.max(6, ((s + 5) / 10) * 100);
 
 /* ── terpene names: aliasing + pick-list for the recalculator ── */
 const dbNames = new Set(TRIAX_DATA.database.map(r => r.name));
+// Commercial/COA terpene names don't always match the database's canonical
+// entries. Exact matches win; unmapped names fall through untouched (the
+// engine's zero-fallback then applies, same as the Excel IFERROR).
 const ALIASES = {
-  "Caryophyllene":"Beta-Caryophyllene", "trans-Caryophyllene":"Beta-Caryophyllene",
-  "Myrcene":"Beta-Myrcene", "Humulene":"Alpha-Humulene",
-  "Alpha-Bisabolol":"Bisabolol", "Beta-Farnesene":"Farnesene", "Alpha-Farnesene":"Farnesene"
+  "trans-Caryophyllene":"Beta-Caryophyllene",
+  "trans-beta-Caryophyllene":"Beta-Caryophyllene",
+  "Caryophyllene":"Beta-Caryophyllene",
+  "Myrcene":"Beta-Myrcene",
+  "Humulene":"Alpha-Humulene",
+  "Beta-Linalool":"Linalool",
+  "Alpha-Bisabolol":"Bisabolol",
+  "Beta-Bisabolol":"Bisabolol",
+  "Alpha-Farnesene":"Farnesene",
+  "Beta-Farnesene":"Farnesene",
+  "Gamma-Terpinolene":"Terpinolene"
 };
 function resolveTerp(raw) {
   if (!raw) return "(none)";
   if (dbNames.has(raw)) return raw;
   if (ALIASES[raw]) return ALIASES[raw];
-  const stripped = raw.replace(/^(Beta-|Alpha-|Gamma-|trans-|cis-)/i, "");
+  const stripped = raw.replace(/^(Beta-|Alpha-|Gamma-|trans-|cis-|\(-\)-|\(\+\)-)/i, "");
   return dbNames.has(stripped) ? stripped : raw;
 }
 const TERP_LIST = [...dbNames].filter(n => n !== "(none)").sort();
