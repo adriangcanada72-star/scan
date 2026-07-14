@@ -69,21 +69,29 @@
      just the mark as big as the space allows */
   .hero .mark{
     position:relative;z-index:3;text-align:center;
-    padding:8px 8px 4px;width:100%;
+    padding:4px 4px 2px;width:100%;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     flex:1;min-height:0;
   }
   .hero .mark img{
-    max-width:97%;max-height:100%;object-fit:contain;display:block;
+    width:100%;height:100%;object-fit:contain;display:block;
   }
   .hero .mark .wm{
-    font-family:'Playfair Display',serif;font-weight:800;font-size:1.5rem;
-    line-height:1.1;color:#22303C;padding:0 4px;
+    font-family:'Playfair Display',serif;font-weight:800;font-size:1.7rem;
+    line-height:1.08;color:#22303C;padding:0 4px;
   }
   .hero .mark .sz{
-    font-family:'Oswald',sans-serif;font-weight:500;font-size:.44rem;
+    font-family:'Oswald',sans-serif;font-weight:500;font-size:.42rem;
     letter-spacing:.2em;text-transform:uppercase;color:#8B959F;
-    margin-top:6px;flex:0 0 auto;
+    margin-top:4px;flex:0 0 auto;
+  }
+
+  /* the tasting note — a line of character above the numbers */
+  .blurb{
+    padding:0 9px;margin-top:5px;
+    font-family:'DM Sans',sans-serif;font-size:.5rem;line-height:1.45;
+    color:#5C6771;text-align:center;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
   .cardno{
     position:absolute;top:7px;right:8px;z-index:4;
@@ -91,7 +99,7 @@
     color:var(--deep);letter-spacing:.03em;white-space:nowrap;
   }
   .canna{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-  .stage .canna{padding:0 8px;margin:4px 0 6px}
+  .stage .canna{padding:0 8px;margin:5px 0 6px}
   .canna .b{
     border-radius:3px;padding:6px 5px;text-align:center;
     border:2px solid #fff;box-shadow:0 1px 4px rgba(27,36,48,.16);
@@ -1641,6 +1649,28 @@ const AROMA_NOTE = {
 };
 
 
+/* ── short front-of-card description ── */
+function stripPrefix(n) {
+  if (!n) return n;
+  if (n.startsWith("Beta-")) return n.slice(5);
+  if (n.startsWith("Alpha-")) return n.slice(6);
+  return n;
+}
+// The blends table is keyed on the three terpenes, sorted, un-prefixed.
+function blendFor(terps) {
+  if (!terps || terps.length < 3 || !TRIAX_DATA.blends) return "";
+  const key = terps.map(t => stripPrefix(resolveTerp(t))).sort().join("|");
+  const hit = TRIAX_DATA.blends.find(b => b.key === key);
+  return hit ? firstSentence(hit.desc) : "";
+}
+function firstSentence(text) {
+  if (!text) return "";
+  const t = String(text).trim();
+  const m = t.match(/^.*?[.!?](\s|$)/);
+  const s = (m ? m[0] : t).trim();
+  return s.length > 150 ? s.slice(0, 147).trimEnd() + "…" : s;
+}
+
 function initials(brand) {
   return (brand || "?").split(/\s+/).filter(w => /^[A-Za-z0-9]/.test(w))
     .slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
@@ -1663,6 +1693,11 @@ function cardHTML(p, scan, idx) {
   const logoImg = p.logo
     ? `<img src="${esc(p.logo)}" alt="${esc(p.brand)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'wm',textContent:${JSON.stringify(p.brand || "")}}))">`
     : `<div class="wm">${esc(p.brand || "Unknown")}</div>`;
+
+  // A short line of character above the numbers. The sommelier blend
+  // description (written for this exact terpene trio) beats the BCLDB
+  // marketing copy when we have one; otherwise trim the catalog text.
+  const blurb = blendFor(terps) || firstSentence(p.description);
 
   const crestImg = p.logo
     ? `<img src="${esc(p.logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ini',textContent:${JSON.stringify(initials(p.brand))}}))">`
@@ -1723,6 +1758,7 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
               ${p.size ? `<div class="sz">${esc(p.category || "")}${p.size ? " · " + esc(p.size) : ""}</div>` : ""}
             </div>
           </div>
+          ${blurb ? `<div class="blurb">${esc(blurb)}</div>` : ""}
           <div class="canna">
             <div class="b thc"><div class="k">THC</div><div class="v">${esc(p.thc || "—")}</div></div>
             <div class="b cbd"><div class="k">CBD</div><div class="v">${esc(p.cbd || "—")}</div></div>
