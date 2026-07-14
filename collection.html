@@ -41,6 +41,9 @@
     transition:transform .75s cubic-bezier(.2,.75,.2,1);cursor:pointer;
   }
   .card.flipped{transform:rotateY(180deg)}
+  /* grid cards lift slightly on hover to read as tappable */
+  .grid .scene .card{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .grid .scene:hover .card{transform:translateY(-4px)}
   .face{
     position:absolute;inset:0;backface-visibility:hidden;overflow:hidden;
     border-radius:9px;box-shadow:0 14px 34px -10px rgba(0,0,0,.32);
@@ -62,15 +65,15 @@
   }
   .hero{
     flex:1;position:relative;overflow:hidden;background:#fff;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
     min-height:0;
   }
   /* the producer's logo IS the portrait — no frame, no watermark,
      just the mark as big as the space allows */
   .hero .mark{
     position:relative;z-index:3;text-align:center;
-    padding:4px 4px 2px;width:100%;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:10px 5px 2px;width:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
     flex:1;min-height:0;
   }
   .hero .mark img{
@@ -283,6 +286,76 @@
   .bf .mk{font-family:'Playfair Display',serif;font-weight:700;font-size:.54rem}
   .bf .mk b{color:var(--deep)}
 
+  /* ══ FULL-SCREEN VIEWER ══
+     Tap a card in the grid and it opens here, large enough that the
+     back is actually readable and the recalculator is usable. Pinch to
+     zoom in further; drag to pan when zoomed. */
+  #viewer{
+    position:fixed;inset:0;z-index:200;display:none;
+    background:rgba(14,17,20,.93);backdrop-filter:blur(6px);
+    align-items:center;justify-content:center;padding:44px 14px 20px;
+    touch-action:none;overscroll-behavior:contain;
+  }
+  #viewer.open{display:flex}
+  #viewer .vstage{
+    width:min(420px,100%);max-height:100%;aspect-ratio:5/7;
+    perspective:1800px;touch-action:none;
+    transition:transform .22s cubic-bezier(.2,.8,.2,1);
+    will-change:transform;
+  }
+  #viewer .vstage.zooming{transition:none}
+  #viewer .card{cursor:pointer}
+  #viewer .sheet{padding:16px 15px 14px}
+  /* everything on the back gets bigger in here — the whole point */
+  #viewer .bh .n{font-size:1.16rem}
+  #viewer .bh .n small{font-size:.72rem}
+  #viewer .bh .no{font-size:.78rem}
+  #viewer .h3{font-size:.58rem;margin-top:12px;padding-bottom:5px}
+  #viewer .h3 em{font-size:.6rem}
+  #viewer .triax .hd .k{font-size:.8rem}
+  #viewer .triax .hd .v{font-size:1.06rem}
+  #viewer .triax .track{height:9px}
+  #viewer .triax .sc{font-size:.52rem}
+  #viewer .triax .sc .d{font-size:.64rem}
+  #viewer .triax .key{font-size:.56rem;gap:12px;margin-top:10px}
+  #viewer .triax-toggle{font-size:.66rem;margin-top:9px}
+  #viewer .triax-editbar{padding:10px;gap:8px}
+  #viewer .triax-editbar label{font-size:.5rem}
+  #viewer .triax-editbar input{width:62px;padding:5px 6px;font-size:.8rem}
+  #viewer .triax-editbar .hint{font-size:.56rem}
+  #viewer .triax-reset{font-size:.58rem;padding:6px 12px}
+  #viewer .triax-badge{font-size:.56rem;padding:5px 8px}
+  #viewer .tr{padding:7px 0;gap:9px}
+  #viewer .tr .r{width:20px;height:20px;font-size:.62rem}
+  #viewer .tr .t{font-size:.9rem}
+  #viewer .tr .tn{font-size:.8rem;padding:4px 5px;max-width:none;flex:1}
+  #viewer .tr .tp{width:58px;padding:4px 6px;font-size:.78rem}
+  #viewer .tr .x{font-size:.6rem}
+  #viewer .facts{margin-top:12px;gap:6px}
+  #viewer .facts .k{font-size:.5rem}
+  #viewer .facts .v{font-size:.76rem}
+  #viewer .bf{padding-top:12px}
+  #viewer .bf .l{font-size:.52rem}
+  #viewer .bf .mk{font-size:.76rem}
+  #viewer .blurb{font-size:.68rem}
+  #viewer .canna .b .k{font-size:.6rem}
+  #viewer .canna .b .v{font-size:1.06rem}
+  #viewer .plate .txt .nm{font-size:1.28rem}
+  #viewer .plate .txt .pos{font-size:.72rem}
+  #viewer .plate .crest{width:62px;height:62px}
+  #viewer .cardno{font-size:.56rem}
+
+  #vclose{
+    position:absolute;top:12px;right:14px;z-index:3;
+    width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;
+    background:rgba(255,255,255,.14);color:#fff;font-size:1.2rem;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #vhint{
+    position:absolute;bottom:12px;left:0;right:0;text-align:center;
+    color:rgba(255,255,255,.5);font-size:.68rem;pointer-events:none;
+  }
+
   /* ══ SPECIES ══ */
   .indica{--border:#74C6EA;--deep:#2F7FA3;--c-thc:#97D6EF;--c-cbd:#ACDFF2}
   .sativa{--border:#F58A34;--deep:#B85F16;--c-thc:#F7A45D;--c-cbd:#F8B670}
@@ -296,6 +369,12 @@
     <span class="hint" id="hint"></span>
   </div>
   <div id="out"><div class="msg">Loading your collection…</div></div>
+</div>
+
+<div id="viewer" aria-hidden="true">
+  <button id="vclose" type="button" aria-label="Close">✕</button>
+  <div class="vstage" id="vstage"></div>
+  <div id="vhint">Tap the card to flip · pinch to zoom</div>
 </div>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -1798,17 +1877,22 @@ ${terpRows}
   </div>`;
 }
 
-/* ══ LIVE RECALCULATION ══ */
-function wireCard(scene, p) {
+/* ══ LIVE RECALCULATION ══
+   Wires flipping + the TRIAX recalculator onto a card. Used for the
+   card inside the full-screen viewer; grid cards are display-only and
+   just open the viewer when tapped. */
+function wireCard(scene, p, {flippable = true} = {}) {
   const card = scene.querySelector(".card");
   const sheet = scene.querySelector(".sheet");
 
   // flip — but never when the tap lands on a control
   const isCtrl = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
-  card.addEventListener("click", e => { if (!isCtrl(e)) card.classList.toggle("flipped"); });
-  card.addEventListener("keydown", e => {
-    if ((e.key === " " || e.key === "Enter") && !isCtrl(e)) { e.preventDefault(); card.classList.toggle("flipped"); }
-  });
+  if (flippable) {
+    card.addEventListener("click", e => { if (!isCtrl(e)) card.classList.toggle("flipped"); });
+    card.addEventListener("keydown", e => {
+      if ((e.key === " " || e.key === "Enter") && !isCtrl(e)) { e.preventDefault(); card.classList.toggle("flipped"); }
+    });
+  }
 
   const triax = sheet.querySelector(".triax");
   if (!triax) return;                       // no TRIAX for this product
@@ -1922,6 +2006,121 @@ function wireCard(scene, p) {
   [thcIn, cbdIn, ttIn].forEach(i => i.addEventListener("input", recalc));
 }
 
+
+/* ══ FULL-SCREEN VIEWER ══
+   A card in the grid is a thumbnail. Tapping it opens the real thing —
+   big enough to read the TRIAX bars and actually use the recalculator.
+   Pinch to zoom past that; drag to pan once zoomed. */
+const viewer = document.getElementById("viewer");
+const vstage = document.getElementById("vstage");
+const vclose = document.getElementById("vclose");
+
+let zoom = 1, panX = 0, panY = 0;
+const MIN_ZOOM = 1, MAX_ZOOM = 4;
+
+function applyTransform() {
+  vstage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+}
+function resetZoom() {
+  zoom = 1; panX = 0; panY = 0;
+  vstage.classList.remove("zooming");
+  applyTransform();
+}
+
+function openViewer(p, scan) {
+  vstage.innerHTML = cardHTML(p, scan);
+  const scene = vstage.querySelector(".scene");
+  // the viewer's card is the interactive one — flip + recalculate live here
+  wireCard(scene, p, {flippable: true});
+  resetZoom();
+  viewer.classList.add("open");
+  viewer.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+function closeViewer() {
+  viewer.classList.remove("open");
+  viewer.setAttribute("aria-hidden", "true");
+  vstage.innerHTML = "";
+  document.body.style.overflow = "";
+}
+
+vclose.addEventListener("click", closeViewer);
+// tapping the dimmed backdrop closes; tapping the card itself doesn't
+viewer.addEventListener("click", e => { if (e.target === viewer) closeViewer(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && viewer.classList.contains("open")) closeViewer();
+});
+
+/* ── pinch to zoom, drag to pan ── */
+const pts = new Map();
+let startDist = 0, startZoom = 1, startPan = null, panStart = null;
+
+const dist = () => {
+  const [a, b] = [...pts.values()];
+  return Math.hypot(a.x - b.x, a.y - b.y);
+};
+
+vstage.addEventListener("pointerdown", e => {
+  // don't hijack taps meant for the inputs and dropdowns
+  if (e.target.closest("select,input,button")) return;
+  pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if (pts.size === 2) {
+    startDist = dist();
+    startZoom = zoom;
+    startPan = {x: panX, y: panY};
+    vstage.classList.add("zooming");
+  } else if (pts.size === 1 && zoom > 1) {
+    panStart = {x: e.clientX - panX, y: e.clientY - panY};
+    vstage.setPointerCapture(e.pointerId);
+    vstage.classList.add("zooming");
+  }
+});
+
+vstage.addEventListener("pointermove", e => {
+  if (!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
+
+  if (pts.size === 2 && startDist > 0) {
+    e.preventDefault();
+    const scale = dist() / startDist;
+    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * scale));
+    if (zoom === 1) { panX = 0; panY = 0; }
+    applyTransform();
+  } else if (pts.size === 1 && panStart && zoom > 1) {
+    e.preventDefault();
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    applyTransform();
+  }
+});
+
+function endPointer(e) {
+  pts.delete(e.pointerId);
+  if (pts.size < 2) startDist = 0;
+  if (pts.size === 0) {
+    panStart = null;
+    vstage.classList.remove("zooming");
+    if (zoom <= 1.02) resetZoom();   // snap back cleanly
+  }
+}
+vstage.addEventListener("pointerup", endPointer);
+vstage.addEventListener("pointercancel", endPointer);
+
+// double-tap toggles between fit and 2x
+let lastTap = 0;
+vstage.addEventListener("pointerup", e => {
+  if (e.target.closest("select,input,button")) return;
+  const now = Date.now();
+  if (now - lastTap < 280 && pts.size === 0) {
+    zoom = zoom > 1.05 ? 1 : 2;
+    panX = 0; panY = 0;
+    applyTransform();
+    lastTap = 0;
+  } else {
+    lastTap = now;
+  }
+});
+
 /* ══ LOAD ══ */
 async function fetchProduct(gtin) {
   try {
@@ -1974,12 +2173,23 @@ async function load() {
   }).join("\n");
 
   out.innerHTML = `<div class="grid">${html}</div>`;
-  hintEl.textContent = "Tap a card to flip";
+  hintEl.textContent = "Tap a card to open";
 
   [...out.querySelectorAll(".scene")].forEach((scene, i) => {
-    const fetched = products[i];
-    const p = fetched || { thc: list[i].thc, species: list[i].species };
-    wireCard(scene, p);
+    const scan = list[i];
+    const p = products[i] || {
+      name: scan.name, brand: scan.brand, category: scan.category,
+      species: scan.species, size: scan.size, thc: scan.thc, cbd: scan.cbd,
+      terpenes: [scan.terp1, scan.terp2, scan.terp3].filter(Boolean),
+      description: scan.description, sku: ""
+    };
+    const card = scene.querySelector(".card");
+    const open = () => openViewer(p, scan);
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); open(); }
+    });
+    card.setAttribute("aria-label", `Open ${p.name || "card"}`);
   });
 }
 
