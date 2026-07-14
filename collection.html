@@ -62,28 +62,28 @@
   }
   .hero{
     flex:1;position:relative;overflow:hidden;background:#fff;
-    display:flex;align-items:center;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:0;
   }
-  .hero .leaf{
-    position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
-    width:96%;opacity:.13;
+  /* the producer's logo IS the portrait — no frame, no watermark,
+     just the mark as big as the space allows */
+  .hero .mark{
+    position:relative;z-index:3;text-align:center;
+    padding:14px 16px 6px;width:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    flex:1;min-height:0;
   }
-  .hero .leaf svg{width:100%;height:auto;display:block}
-  .hero .mark{position:relative;z-index:3;text-align:center;padding:0 14px}
-  .hero .mark .logo-badge{
-    display:inline-flex;align-items:center;justify-content:center;
-    background:#fff;border-radius:11px;border:1px solid #E4E8EB;
-    padding:12px 18px;max-width:86%;min-height:52px;
-    box-shadow:0 5px 14px rgba(27,36,48,.13);
+  .hero .mark img{
+    max-width:88%;max-height:100%;object-fit:contain;display:block;
   }
-  .hero .mark .logo-badge img{max-width:100%;max-height:58px;object-fit:contain;display:block}
-  .hero .mark .logo-badge .wm{
-    font-family:'Playfair Display',serif;font-weight:800;font-size:.94rem;
-    line-height:1.1;color:#22303C;
+  .hero .mark .wm{
+    font-family:'Playfair Display',serif;font-weight:800;font-size:1.22rem;
+    line-height:1.12;color:#22303C;padding:0 6px;
   }
   .hero .mark .sz{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.46rem;
-    letter-spacing:.2em;text-transform:uppercase;color:#8B959F;margin-top:8px;
+    letter-spacing:.2em;text-transform:uppercase;color:#8B959F;
+    margin-top:10px;flex:0 0 auto;
   }
   .cardno{
     position:absolute;top:7px;right:8px;z-index:4;
@@ -1640,16 +1640,6 @@ const AROMA_NOTE = {
   "Guaiol":"Resin","Farnesene":"Apple","Eucalyptol":"Mint","Valencene":"Orange"
 };
 
-const LEAF = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g fill="#1B2430">
-<g transform="translate(100,132)">
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z"/>
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z" transform="rotate(-26) scale(.93)"/>
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z" transform="rotate(26) scale(.93)"/>
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z" transform="rotate(-52) scale(.8)"/>
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z" transform="rotate(52) scale(.8)"/>
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z" transform="rotate(-78) scale(.6)"/>
-<path d="M0,0 L-6,-12 L-2,-16 L-10,-29 L-4,-33 L-13,-48 L-5,-52 L-10,-68 L-4,-72 L-6,-86 L-2,-90 L0,-102 L2,-90 L6,-86 L4,-72 L10,-68 L5,-52 L13,-48 L4,-33 L10,-29 L2,-16 L6,-12 Z" transform="rotate(78) scale(.6)"/>
-</g><rect x="98" y="130" width="4" height="46" rx="2"/></g></svg>`;
 
 function initials(brand) {
   return (brand || "?").split(/\s+/).filter(w => /^[A-Za-z0-9]/.test(w))
@@ -1669,6 +1659,7 @@ function cardHTML(p, scan, idx) {
   const tri = p.triax || {};
   const hasTriax = tri.cerebral !== undefined && tri.cerebral !== null;
 
+  // the logo stands alone — if it fails to load, the brand name takes its place
   const logoImg = p.logo
     ? `<img src="${esc(p.logo)}" alt="${esc(p.brand)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'wm',textContent:${JSON.stringify(p.brand || "")}}))">`
     : `<div class="wm">${esc(p.brand || "Unknown")}</div>`;
@@ -1727,9 +1718,8 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
         <div class="stage">
           <span class="cardno">No. ${esc(p.sku || "—")}</span>
           <div class="hero">
-            <div class="leaf">${LEAF}</div>
             <div class="mark">
-              <div class="logo-badge">${logoImg}</div>
+              ${logoImg}
               ${p.size ? `<div class="sz">${esc(p.category || "")}${p.size ? " · " + esc(p.size) : ""}</div>` : ""}
             </div>
           </div>
