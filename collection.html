@@ -1888,7 +1888,12 @@ function wireCard(scene, p, {flippable = true} = {}) {
   // flip — but never when the tap lands on a control
   const isCtrl = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
   if (flippable) {
-    card.addEventListener("click", e => { if (!isCtrl(e)) card.classList.toggle("flipped"); });
+    card.addEventListener("click", e => {
+      if (isCtrl(e)) return;
+      // when zoomed in, a tap is for panning/inspecting — not flipping
+      if (typeof zoom !== "undefined" && zoom > 1.05) return;
+      card.classList.toggle("flipped");
+    });
     card.addEventListener("keydown", e => {
       if ((e.key === " " || e.key === "Enter") && !isCtrl(e)) { e.preventDefault(); card.classList.toggle("flipped"); }
     });
@@ -2051,27 +2056,34 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && viewer.classList.contains("open")) closeViewer();
 });
 
-/* ── pinch to zoom, drag to pan ── */
+/* ── pinch to zoom, drag to pan ──
+   Releasing a two-finger pinch fires a pointerup per finger. Without a
+   guard, the second one reads as a double-tap and instantly undoes the
+   zoom — so a multi-touch gesture is flagged and double-tap detection
+   is suppressed until a clean single tap comes along. */
 const pts = new Map();
-let startDist = 0, startZoom = 1, startPan = null, panStart = null;
+let startDist = 0, startZoom = 1, panStart = null;
+let multiTouch = false;      // true once 2+ fingers are down
+let lastTap = 0;
 
 const dist = () => {
   const [a, b] = [...pts.values()];
   return Math.hypot(a.x - b.x, a.y - b.y);
 };
+const isCtrlTarget = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
 
 vstage.addEventListener("pointerdown", e => {
-  // don't hijack taps meant for the inputs and dropdowns
-  if (e.target.closest("select,input,button")) return;
+  if (isCtrlTarget(e)) return;                 // leave the inputs alone
   pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
-  if (pts.size === 2) {
+
+  if (pts.size >= 2) {
+    multiTouch = true;
     startDist = dist();
     startZoom = zoom;
-    startPan = {x: panX, y: panY};
+    panStart = null;
     vstage.classList.add("zooming");
   } else if (pts.size === 1 && zoom > 1) {
     panStart = {x: e.clientX - panX, y: e.clientY - panY};
-    vstage.setPointerCapture(e.pointerId);
     vstage.classList.add("zooming");
   }
 });
@@ -2080,11 +2092,10 @@ vstage.addEventListener("pointermove", e => {
   if (!pts.has(e.pointerId)) return;
   pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
 
-  if (pts.size === 2 && startDist > 0) {
+  if (pts.size >= 2 && startDist > 0) {
     e.preventDefault();
-    const scale = dist() / startDist;
-    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * scale));
-    if (zoom === 1) { panX = 0; panY = 0; }
+    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (dist() / startDist)));
+    if (zoom <= 1) { panX = 0; panY = 0; }
     applyTransform();
   } else if (pts.size === 1 && panStart && zoom > 1) {
     e.preventDefault();
@@ -2092,34 +2103,42 @@ vstage.addEventListener("pointermove", e => {
     panY = e.clientY - panStart.y;
     applyTransform();
   }
-});
+}, {passive: false});
 
 function endPointer(e) {
-  pts.delete(e.pointerId);
+  const wasCtrl = isCtrlTarget(e);
+  const hadPoint = pts.delete(e.pointerId);
   if (pts.size < 2) startDist = 0;
+
   if (pts.size === 0) {
     panStart = null;
     vstage.classList.remove("zooming");
-    if (zoom <= 1.02) resetZoom();   // snap back cleanly
+
+    if (multiTouch) {
+      // a pinch just ended — keep the zoom, and don't let this release
+      // be mistaken for a tap
+      multiTouch = false;
+      lastTap = 0;
+      if (zoom <= 1.02) resetZoom();   // pinched all the way back out
+      return;
+    }
+
+    // clean single tap: double-tap toggles fit <-> 2x
+    if (hadPoint && !wasCtrl) {
+      const now = Date.now();
+      if (now - lastTap < 280) {
+        zoom = zoom > 1.05 ? 1 : 2;
+        panX = 0; panY = 0;
+        applyTransform();
+        lastTap = 0;
+      } else {
+        lastTap = now;
+      }
+    }
   }
 }
 vstage.addEventListener("pointerup", endPointer);
 vstage.addEventListener("pointercancel", endPointer);
-
-// double-tap toggles between fit and 2x
-let lastTap = 0;
-vstage.addEventListener("pointerup", e => {
-  if (e.target.closest("select,input,button")) return;
-  const now = Date.now();
-  if (now - lastTap < 280 && pts.size === 0) {
-    zoom = zoom > 1.05 ? 1 : 2;
-    panX = 0; panY = 0;
-    applyTransform();
-    lastTap = 0;
-  } else {
-    lastTap = now;
-  }
-});
 
 /* ══ LOAD ══ */
 async function fetchProduct(gtin) {
