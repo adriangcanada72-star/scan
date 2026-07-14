@@ -295,6 +295,7 @@
     background:rgba(14,17,20,.93);backdrop-filter:blur(6px);
     align-items:center;justify-content:center;padding:44px 14px 20px;
     touch-action:none;overscroll-behavior:contain;
+    overflow:hidden;   /* the zoomed card pans within this frame */
   }
   #viewer.open{display:flex}
   #viewer .vstage{
@@ -2023,7 +2024,27 @@ const vclose = document.getElementById("vclose");
 let zoom = 1, panX = 0, panY = 0;
 const MIN_ZOOM = 1, MAX_ZOOM = 4;
 
+// How far the card can travel before its edge pulls inside the screen.
+// At scale z the card renders w*z wide, so the overhang each side is
+// (w*z - viewportW)/2 — that's exactly how far panning may go.
+function panLimits() {
+  const r = vstage.getBoundingClientRect();
+  // getBoundingClientRect already reflects the current scale, so divide
+  // back out to recover the card's natural size
+  const w = r.width / zoom, h = r.height / zoom;
+  const vw = viewer.clientWidth, vh = viewer.clientHeight;
+  return {
+    x: Math.max(0, (w * zoom - vw) / 2 + 24),   // +24 so an edge isn't flush
+    y: Math.max(0, (h * zoom - vh) / 2 + 24)
+  };
+}
+function clampPan() {
+  const lim = panLimits();
+  panX = Math.min(lim.x, Math.max(-lim.x, panX));
+  panY = Math.min(lim.y, Math.max(-lim.y, panY));
+}
 function applyTransform() {
+  clampPan();
   vstage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
 }
 function resetZoom() {
@@ -2084,6 +2105,9 @@ vstage.addEventListener("pointerdown", e => {
     vstage.classList.add("zooming");
   } else if (pts.size === 1 && zoom > 1) {
     panStart = {x: e.clientX - panX, y: e.clientY - panY};
+    // without capture the drag stops the instant the finger leaves the
+    // card — which made it impossible to pan out to the edges
+    try { vstage.setPointerCapture(e.pointerId); } catch {}
     vstage.classList.add("zooming");
   }
 });
@@ -2096,7 +2120,7 @@ vstage.addEventListener("pointermove", e => {
     e.preventDefault();
     zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (dist() / startDist)));
     if (zoom <= 1) { panX = 0; panY = 0; }
-    applyTransform();
+    applyTransform();   // clamps, so shrinking always pulls the card back in
   } else if (pts.size === 1 && panStart && zoom > 1) {
     e.preventDefault();
     panX = e.clientX - panStart.x;
@@ -2107,6 +2131,7 @@ vstage.addEventListener("pointermove", e => {
 
 function endPointer(e) {
   const wasCtrl = isCtrlTarget(e);
+  try { if (vstage.hasPointerCapture(e.pointerId)) vstage.releasePointerCapture(e.pointerId); } catch {}
   const hadPoint = pts.delete(e.pointerId);
   if (pts.size < 2) startDist = 0;
 
