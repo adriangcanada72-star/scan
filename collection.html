@@ -218,10 +218,11 @@
   .sheet.editing .tr .x{display:none}
   .sheet.editing .tr .tp{display:inline-block}
 
-  /* rating */
+  /* rating (on the card front, below the nameplate) */
   .rating{
-    margin-top:8px;padding-top:8px;border-top:1px solid #E4E8EB;
+    background:#fff;padding:7px 10px 9px;
     display:flex;align-items:center;justify-content:space-between;gap:8px;
+    border-top:1px solid #EDF0F2;
   }
   .rating .lbl{
     font-family:'Oswald',sans-serif;font-size:.44rem;letter-spacing:.14em;
@@ -456,6 +457,10 @@
       font-size:.72rem;-webkit-line-clamp:2;
     }
     .grid .plate .txt .pos{font-size:.5rem;margin-top:2px}
+    .grid .rating{padding:5px 8px 7px;justify-content:center}
+    .grid .rating .lbl{display:none}          /* stars only on thumbnails */
+    .grid .rating .saved{display:none}
+    .grid .rating .star{font-size:.8rem}
     /* the hero (logo) claims almost the whole card; nameplate stays compact */
     .grid .hero{padding:0}
     .grid .hero .mark{padding:8px 6px 4px}
@@ -1957,6 +1962,13 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
               <div class="pos">${esc(sp)}</div>
             </div>
           </div>
+          <div class="rating" data-gtin="${esc(scan.gtin || "")}">
+            <span class="lbl">Your Rating</span>
+            <span class="stars" role="radiogroup" aria-label="Rate 1 to 5 stars">
+              ${[1,2,3,4,5].map(n => `<span class="star" data-v="${n}" role="radio" tabindex="0" aria-label="${n} star">★</span>`).join("")}
+            </span>
+            <span class="saved">Saved \u2713</span>
+          </div>
         </div>
       </div>
 
@@ -1969,13 +1981,6 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
 ${triaxBlock}
           <div class="h3">Prominent Terpenes</div>
 ${terpRows}
-          <div class="rating" data-gtin="${esc(scan.gtin || "")}">
-            <span class="lbl">Your Rating</span>
-            <span class="stars" role="radiogroup" aria-label="Rate 1 to 5 stars">
-              ${[1,2,3,4,5].map(n => `<span class="star" data-v="${n}" role="radio" tabindex="0" aria-label="${n} star">★</span>`).join("")}
-            </span>
-            <span class="saved">Saved \u2713</span>
-          </div>
           <div class="bf">
             <div class="l">${scan.lot ? "Lot " + esc(scan.lot) + "<br>" : ""}Scanned ${esc((scan.at || "").slice(0, 10))}</div>
             <div class="mk">The <b>Terpene</b> Sommelier</div>
@@ -1996,7 +2001,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
   const sheet = scene.querySelector(".sheet");
 
   // flip — but never when the tap lands on a control
-  const isCtrl = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
+  const isCtrl = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions,.rating");
   if (flippable) {
     card.addEventListener("click", e => {
       if (isCtrl(e)) return;
@@ -2011,8 +2016,8 @@ function wireCard(scene, p, {flippable = true} = {}) {
     });
   }
 
-  // star rating
-  const ratingEl = sheet.querySelector(".rating");
+  // star rating (now on the front — search the whole card)
+  const ratingEl = card.querySelector(".rating");
   if (ratingEl) {
     const gtin = ratingEl.dataset.gtin;
     const stars = [...ratingEl.querySelectorAll(".star")];
