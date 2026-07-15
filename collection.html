@@ -29,10 +29,10 @@
   .msg b{color:#1B2430;display:block;margin-bottom:6px;font-size:1rem}
 
   .grid{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
-    gap:20px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:14px;
   }
-  @media(min-width:680px){.grid{grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:24px}}
+  @media(min-width:680px){.grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:18px}}
 
   /* ══ CARD SHELL ══ */
   .scene{width:100%;aspect-ratio:5/7;perspective:1500px}
@@ -41,9 +41,14 @@
     transition:transform .75s cubic-bezier(.2,.75,.2,1);cursor:pointer;
   }
   .card.flipped{transform:rotateY(180deg)}
-  /* grid cards lift slightly on hover to read as tappable */
-  .grid .scene .card{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
-  .grid .scene:hover .card{transform:translateY(-4px)}
+  /* grid cards are thumbnails — they lift and brighten on hover/press to
+     read as "tap to open", and never flip in place */
+  .grid .scene .card{transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+  .grid .scene .face{transition:box-shadow .24s ease}
+  .grid .scene:hover .card,
+  .grid .scene:active .card{transform:translateY(-4px) scale(1.02)}
+  .grid .scene:hover .face{box-shadow:0 20px 40px -12px rgba(0,0,0,.42)}
+  .grid .scene .card .back{visibility:hidden}
   .face{
     position:absolute;inset:0;backface-visibility:hidden;overflow:hidden;
     border-radius:9px;box-shadow:0 14px 34px -10px rgba(0,0,0,.32);
@@ -297,7 +302,10 @@
     touch-action:none;overscroll-behavior:contain;
     overflow:hidden;   /* the zoomed card pans within this frame */
   }
-  #viewer.open{display:flex}
+  #viewer.open{display:flex;animation:vfade .18s ease}
+  @keyframes vfade{from{opacity:0}to{opacity:1}}
+  #viewer.open .vstage{animation:vpop .26s cubic-bezier(.2,.9,.25,1)}
+  @keyframes vpop{from{transform:scale(.82);opacity:.4}to{transform:scale(1);opacity:1}}
   #viewer .vstage{
     width:min(420px,100%);max-height:100%;aspect-ratio:5/7;
     perspective:1800px;touch-action:none;
