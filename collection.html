@@ -323,11 +323,16 @@
   #viewer.open .vstage{animation:vpop .26s cubic-bezier(.2,.9,.25,1)}
   @keyframes vpop{from{transform:scale(.82);opacity:.4}to{transform:scale(1);opacity:1}}
   #viewer .vstage{
-    width:min(420px,100%);max-height:100%;aspect-ratio:5/7;
+    width:min(420px,100%);aspect-ratio:5/7;
     perspective:1800px;touch-action:none;
     transition:transform .22s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
   }
+  /* the back can be taller than the 5:7 face; allow it to size to its
+     content so a one-finger drag pans through the whole thing */
+  #viewer .card.flipped{height:auto;min-height:100%}
+  #viewer .card.flipped .back{position:relative;height:auto}
+  #viewer .card.flipped .front{display:none}
   #viewer .vstage.zooming{transition:none}
   #viewer .card{cursor:pointer}
   /* The back's sheet is a scroll container (overflow-y:auto). Inside the
@@ -2140,6 +2145,7 @@ document.addEventListener("keydown", e => {
 const pts = new Map();
 let startDist = 0, startZoom = 1, panStart = null;
 let multiTouch = false;      // true once 2+ fingers are down
+let dragMoved = false;       // true once a single-finger drag actually moves
 let lastTap = 0;
 
 const dist = () => {
@@ -2158,10 +2164,12 @@ vstage.addEventListener("pointerdown", e => {
     startZoom = zoom;
     panStart = null;
     vstage.classList.add("zooming");
-  } else if (pts.size === 1 && zoom > 1) {
+  } else if (pts.size === 1) {
+    // one finger always drags — vertically to read a tall card back, and
+    // horizontally too once zoomed in. Capture the pointer so the drag
+    // survives the finger leaving the card.
     panStart = {x: e.clientX - panX, y: e.clientY - panY};
-    // without capture the drag stops the instant the finger leaves the
-    // card — which made it impossible to pan out to the edges
+    dragMoved = false;
     try { vstage.setPointerCapture(e.pointerId); } catch {}
     vstage.classList.add("zooming");
   }
@@ -2176,10 +2184,14 @@ vstage.addEventListener("pointermove", e => {
     zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (dist() / startDist)));
     if (zoom <= 1) { panX = 0; panY = 0; }
     applyTransform();   // clamps, so shrinking always pulls the card back in
-  } else if (pts.size === 1 && panStart && zoom > 1) {
+  } else if (pts.size === 1 && panStart) {
     e.preventDefault();
-    panX = e.clientX - panStart.x;
+    // vertical always; horizontal only when zoomed (so an unzoomed card
+    // can't drift sideways off-centre)
     panY = e.clientY - panStart.y;
+    if (zoom > 1) panX = e.clientX - panStart.x;
+    if (Math.abs(panY - (e.clientY - panStart.y)) > 0 || Math.abs(e.clientX - (panStart.x + panX)) > 4) dragMoved = true;
+    dragMoved = true;
     applyTransform();
   }
 }, {passive: false});
@@ -2202,6 +2214,10 @@ function endPointer(e) {
       if (zoom <= 1.02) resetZoom();   // pinched all the way back out
       return;
     }
+
+    // a drag that actually moved is not a tap — don't let it flip or
+    // register as a double-tap
+    if (dragMoved) { dragMoved = false; lastTap = 0; return; }
 
     // clean single tap: double-tap toggles fit <-> 2x
     if (hadPoint && !wasCtrl) {
