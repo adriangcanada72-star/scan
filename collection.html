@@ -328,6 +328,12 @@
     transition:transform .22s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
   }
+  /* when showing the back, the card sizes to its content and the whole
+     thing is dragged up/down to read it all */
+  #viewer .vstage.showback{aspect-ratio:auto;height:auto}
+  #viewer .vstage.showback .card{position:relative;transform:none !important;height:auto}
+  #viewer .vstage.showback .front{display:none}
+  #viewer .vstage.showback .back{position:relative;transform:none;height:auto}
   #viewer .vstage.zooming{transition:none}
   #viewer .card{cursor:pointer}
   /* The back's sheet is a scroll container (overflow-y:auto). Inside the
@@ -336,15 +342,11 @@
      died on the back. In here the card is big enough not to need its own
      scroll, so hand every touch to the gesture handler instead. */
   #viewer .face,
+  #viewer .sheet,
   #viewer .stage{touch-action:none}
-  /* the back sheet is the one scrollable surface; one-finger drag scrolls
-     it. Hide the scrollbar — the drag is the control now. */
-  #viewer .sheet{
-    padding:16px 15px 14px;
-    overflow-y:auto;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;touch-action:pan-y;
-  }
-  #viewer .sheet::-webkit-scrollbar{display:none}
+  /* the whole card is dragged as one piece — the back sheet grows to its
+     content height rather than scrolling inside itself */
+  #viewer .sheet{padding:16px 15px 14px;overflow:visible}
   /* the inputs still need normal touch behaviour */
   #viewer input,
   #viewer select,
@@ -1953,9 +1955,16 @@ function wireCard(scene, p, {flippable = true} = {}) {
     card.addEventListener("click", e => {
       if (isCtrl(e)) return;
       if (typeof zoom !== "undefined" && zoom > 1.05) return;
-      // a drag-scroll just happened — swallow the click so it doesn't flip
+      // a drag just happened — swallow the click so it doesn't flip
       if (typeof dragMoved !== "undefined" && dragMoved) return;
       card.classList.toggle("flipped");
+      // in the viewer, growing the card to the back's height needs a class
+      // on vstage; reset any drag offset when the face changes
+      const vs = card.closest("#vstage");
+      if (vs) {
+        vs.classList.toggle("showback", card.classList.contains("flipped"));
+        panX = 0; panY = 0; if (typeof applyTransform === "function") applyTransform();
+      }
     });
     card.addEventListener("keydown", e => {
       if ((e.key === " " || e.key === "Enter") && !isCtrl(e)) { e.preventDefault(); card.classList.toggle("flipped"); }
@@ -2117,6 +2126,7 @@ function resetZoom() {
 
 function openViewer(p, scan) {
   vstage.innerHTML = cardHTML(p, scan);
+  vstage.classList.remove("showback");
   const scene = vstage.querySelector(".scene");
   // the viewer's card is the interactive one — flip + recalculate live here
   wireCard(scene, p, {flippable: true});
@@ -2140,24 +2150,19 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── gestures in the viewer ──
-   Two fingers pinch-zoom the whole card. One finger: when the card is at
-   fit size, dragging scrolls the (taller) back sheet up and down — the
-   drag replaces the scrollbar. When zoomed in, one finger pans the
-   magnified card instead. */
+   One finger drags the WHOLE card: vertically always (to read a tall
+   back), horizontally too once zoomed. Two fingers pinch-zoom. Pan is
+   clamped to the card's real rendered size, so every edge is reachable
+   but the card can't be lost off-screen. */
 const pts = new Map();
-let startDist = 0, startZoom = 1;
-let panStart = null;          // {x,y} for zoomed panning
-let scrollStart = null;       // {y, top} for one-finger sheet scrolling
-let multiTouch = false;
-let dragMoved = false;
-let lastTap = 0;
+let startDist = 0, startZoom = 1, panStart = null;
+let multiTouch = false, dragMoved = false, lastTap = 0;
 
 const dist = () => {
   const [a, b] = [...pts.values()];
   return Math.hypot(a.x - b.x, a.y - b.y);
 };
 const isCtrlTarget = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
-const activeSheet = () => vstage.querySelector(".card.flipped .sheet");
 
 vstage.addEventListener("pointerdown", e => {
   if (isCtrlTarget(e)) return;
@@ -2168,23 +2173,12 @@ vstage.addEventListener("pointerdown", e => {
     startDist = dist();
     startZoom = zoom;
     panStart = null;
-    scrollStart = null;
     vstage.classList.add("zooming");
   } else if (pts.size === 1) {
+    panStart = {x: e.clientX - panX, y: e.clientY - panY};
     dragMoved = false;
-    if (zoom > 1) {
-      // zoomed: one finger pans the magnified card
-      panStart = {x: e.clientX - panX, y: e.clientY - panY};
-      try { vstage.setPointerCapture(e.pointerId); } catch {}
-      vstage.classList.add("zooming");
-    } else {
-      // fit size: one finger scrolls the back sheet
-      const sheet = activeSheet();
-      if (sheet) {
-        scrollStart = {y: e.clientY, top: sheet.scrollTop};
-        try { vstage.setPointerCapture(e.pointerId); } catch {}
-      }
-    }
+    try { vstage.setPointerCapture(e.pointerId); } catch {}
+    vstage.classList.add("zooming");
   }
 });
 
@@ -2195,23 +2189,15 @@ vstage.addEventListener("pointermove", e => {
   if (pts.size >= 2 && startDist > 0) {
     e.preventDefault();
     zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (dist() / startDist)));
-    if (zoom <= 1) { panX = 0; panY = 0; }
+    if (zoom <= 1) panX = 0;
     applyTransform();
-  } else if (pts.size === 1 && panStart && zoom > 1) {
-    // pan the zoomed card
+  } else if (pts.size === 1 && panStart) {
     e.preventDefault();
-    panX = e.clientX - panStart.x;
+    // whole-card drag: vertical always, horizontal only when zoomed
     panY = e.clientY - panStart.y;
+    if (zoom > 1) panX = e.clientX - panStart.x;
     dragMoved = true;
     applyTransform();
-  } else if (pts.size === 1 && scrollStart) {
-    // drag to scroll the back sheet — finger down moves content down
-    const sheet = activeSheet();
-    if (sheet) {
-      e.preventDefault();
-      sheet.scrollTop = scrollStart.top - (e.clientY - scrollStart.y);
-      if (Math.abs(e.clientY - scrollStart.y) > 4) dragMoved = true;
-    }
   }
 }, {passive: false});
 
@@ -2223,28 +2209,14 @@ function endPointer(e) {
 
   if (pts.size === 0) {
     panStart = null;
-    scrollStart = null;
     vstage.classList.remove("zooming");
-
-    if (multiTouch) {
-      multiTouch = false;
-      lastTap = 0;
-      if (zoom <= 1.02) resetZoom();
-      return;
-    }
+    if (multiTouch) { multiTouch = false; lastTap = 0; if (zoom <= 1.02) resetZoom(); return; }
     if (dragMoved) { dragMoved = false; lastTap = 0; return; }
-
-    // clean tap → double-tap toggles fit <-> 2x zoom
     if (hadPoint && !wasCtrl) {
       const now = Date.now();
       if (now - lastTap < 280) {
-        zoom = zoom > 1.05 ? 1 : 2;
-        panX = 0; panY = 0;
-        applyTransform();
-        lastTap = 0;
-      } else {
-        lastTap = now;
-      }
+        zoom = zoom > 1.05 ? 1 : 2; panX = 0; panY = 0; applyTransform(); lastTap = 0;
+      } else { lastTap = now; }
     }
   }
 }
