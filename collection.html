@@ -2033,6 +2033,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
       star.addEventListener("mouseenter", () => paint(val));
       const commit = async () => {
         current = val; RATINGS[gtin] = val; paint(val);
+        if (typeof paintThumbStars === "function") paintThumbStars(gtin);  // live thumbnail update
         savedTag.classList.add("show");
         await saveRating(gtin, val);
         setTimeout(() => savedTag.classList.remove("show"), 1400);
@@ -2180,6 +2181,17 @@ function resetZoom() {
   viewer.scrollTop = 0;
 }
 
+// repaint a grid thumbnail's stars from the current RATINGS value
+function paintThumbStars(gtin) {
+  const score = RATINGS[gtin] || 0;
+  document.querySelectorAll(`.grid .scene[data-gtin="${cssEscape(gtin)}"] .rating .star`).forEach((s, i) => {
+    s.classList.toggle("on", i < score);
+  });
+}
+function cssEscape(s) {
+  return String(s).replace(/["\\]/g, "\\$&");
+}
+
 function openViewer(p, scan) {
   vstage.innerHTML = cardHTML(p, scan);
   const scene = vstage.querySelector(".scene");
@@ -2190,10 +2202,12 @@ function openViewer(p, scan) {
   document.body.style.overflow = "hidden";
 }
 function closeViewer() {
+  const g = vstage.querySelector(".rating")?.dataset.gtin;
   viewer.classList.remove("open");
   viewer.setAttribute("aria-hidden", "true");
   vstage.innerHTML = "";
   document.body.style.overflow = "";
+  if (g) paintThumbStars(g);   // ensure the thumbnail reflects any new rating
 }
 
 vclose.addEventListener("click", closeViewer);
@@ -2335,13 +2349,10 @@ async function load() {
   out.innerHTML = `<div class="grid">${html}</div>`;
   hintEl.textContent = "Tap a card to open";
 
-  // paint each thumbnail's stars to show the saved rating at a glance
+  // tag each thumbnail with its gtin and paint its saved rating
   [...out.querySelectorAll(".grid .scene")].forEach((scene, i) => {
-    const gtin = list[i].gtin;
-    const score = RATINGS[gtin] || 0;
-    scene.querySelectorAll(".rating .star").forEach((s, idx) => {
-      s.classList.toggle("on", idx < score);
-    });
+    scene.dataset.gtin = list[i].gtin || "";
+    paintThumbStars(list[i].gtin);
   });
 
   [...out.querySelectorAll(".scene")].forEach((scene, i) => {
