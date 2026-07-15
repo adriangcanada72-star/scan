@@ -314,26 +314,38 @@
   #viewer{
     position:fixed;inset:0;z-index:200;display:none;
     background:rgba(14,17,20,.93);backdrop-filter:blur(6px);
-    align-items:center;justify-content:center;padding:44px 14px 20px;
-    touch-action:none;overscroll-behavior:contain;
-    overflow:hidden;   /* the zoomed card pans within this frame */
+    padding:44px 14px 40px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    scrollbar-width:none;
   }
-  #viewer.open{display:flex;animation:vfade .18s ease}
+  #viewer::-webkit-scrollbar{display:none}
+  #viewer.open{display:block}
+  /* center the card horizontally, let it flow tall vertically */
+  #viewer .vwrap{
+    min-height:100%;display:flex;align-items:flex-start;justify-content:center;
+  }
+  #viewer.open{animation:vfade .18s ease}
   @keyframes vfade{from{opacity:0}to{opacity:1}}
   #viewer.open .vstage{animation:vpop .26s cubic-bezier(.2,.9,.25,1)}
   @keyframes vpop{from{transform:scale(.82);opacity:.4}to{transform:scale(1);opacity:1}}
   #viewer .vstage{
-    width:min(420px,100%);aspect-ratio:5/7;
-    perspective:1800px;touch-action:none;
+    width:min(420px,100%);
+    perspective:1800px;
     transition:transform .22s cubic-bezier(.2,.8,.2,1);
-    will-change:transform;
+    will-change:transform;transform-origin:top center;
   }
-  /* when showing the back, the card sizes to its content and the whole
-     thing is dragged up/down to read it all */
-  #viewer .vstage.showback{aspect-ratio:auto;height:auto}
-  #viewer .vstage.showback .card{position:relative;transform:none !important;height:auto}
-  #viewer .vstage.showback .front{display:none}
-  #viewer .vstage.showback .back{position:relative;transform:none;height:auto}
+  #viewer .vstage.zoomed{transition:none}
+  /* front keeps the 5:7 shape; back flows to its content height */
+  #viewer .scene{width:100%}
+  #viewer .card{position:relative;width:100%}
+  #viewer .card .front{position:relative;aspect-ratio:5/7}
+  #viewer .card .back{position:absolute;inset:0}
+  /* when flipped, show the back in normal flow (tall) and hide the front */
+  #viewer .card.flipped .front{display:none}
+  #viewer .card.flipped .back{position:relative;inset:auto;transform:none}
+  #viewer .card{transform:none !important} /* no rotateY; we swap faces */
+  #viewer .card .back{transform:none;backface-visibility:visible}
   #viewer .vstage.zooming{transition:none}
   #viewer .card{cursor:pointer}
   /* The back's sheet is a scroll container (overflow-y:auto). Inside the
@@ -437,8 +449,7 @@
 
 <div id="viewer" aria-hidden="true">
   <button id="vclose" type="button" aria-label="Close">✕</button>
-  <div class="vstage" id="vstage"></div>
-  <div id="vhint">Tap the card to flip · pinch to zoom</div>
+  <div class="vwrap"><div class="vstage" id="vstage"></div></div>
 </div>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -1955,16 +1966,10 @@ function wireCard(scene, p, {flippable = true} = {}) {
     card.addEventListener("click", e => {
       if (isCtrl(e)) return;
       if (typeof zoom !== "undefined" && zoom > 1.05) return;
-      // a drag just happened — swallow the click so it doesn't flip
-      if (typeof dragMoved !== "undefined" && dragMoved) return;
       card.classList.toggle("flipped");
-      // in the viewer, growing the card to the back's height needs a class
-      // on vstage; reset any drag offset when the face changes
-      const vs = card.closest("#vstage");
-      if (vs) {
-        vs.classList.toggle("showback", card.classList.contains("flipped"));
-        panX = 0; panY = 0; if (typeof applyTransform === "function") applyTransform();
-      }
+      // start each face at the top
+      const v = document.getElementById("viewer");
+      if (v) v.scrollTop = 0;
     });
     card.addEventListener("keydown", e => {
       if ((e.key === " " || e.key === "Enter") && !isCtrl(e)) { e.preventDefault(); card.classList.toggle("flipped"); }
@@ -2098,37 +2103,17 @@ const MIN_ZOOM = 1, MAX_ZOOM = 4;
 // How far the card can travel before its edge pulls inside the screen.
 // At scale z the card renders w*z wide, so the overhang each side is
 // (w*z - viewportW)/2 — that's exactly how far panning may go.
-function panLimits() {
-  const r = vstage.getBoundingClientRect();
-  // getBoundingClientRect already reflects the current scale, so divide
-  // back out to recover the card's natural size
-  const w = r.width / zoom, h = r.height / zoom;
-  const vw = viewer.clientWidth, vh = viewer.clientHeight;
-  return {
-    x: Math.max(0, (w * zoom - vw) / 2 + 24),   // +24 so an edge isn't flush
-    y: Math.max(0, (h * zoom - vh) / 2 + 24)
-  };
-}
-function clampPan() {
-  const lim = panLimits();
-  panX = Math.min(lim.x, Math.max(-lim.x, panX));
-  panY = Math.min(lim.y, Math.max(-lim.y, panY));
-}
-function applyTransform() {
-  clampPan();
-  vstage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
-}
+function applyTransform() { /* pan removed — native scroll handles it */ }
 function resetZoom() {
-  zoom = 1; panX = 0; panY = 0;
-  vstage.classList.remove("zooming");
-  applyTransform();
+  zoom = 1;
+  vstage.style.transform = "";
+  vstage.classList.remove("zoomed");
+  viewer.scrollTop = 0;
 }
 
 function openViewer(p, scan) {
   vstage.innerHTML = cardHTML(p, scan);
-  vstage.classList.remove("showback");
   const scene = vstage.querySelector(".scene");
-  // the viewer's card is the interactive one — flip + recalculate live here
   wireCard(scene, p, {flippable: true});
   resetZoom();
   viewer.classList.add("open");
@@ -2150,73 +2135,65 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── gestures in the viewer ──
-   One finger drags the WHOLE card: vertically always (to read a tall
-   back), horizontally too once zoomed. Two fingers pinch-zoom. Pan is
-   clamped to the card's real rendered size, so every edge is reachable
-   but the card can't be lost off-screen. */
+   The viewer is a native scroll container and the card flows tall inside
+   it, so dragging one finger scrolls the card up and down for free — no
+   custom pan code, no clamping, works on the front and the (tall) back.
+   We only add: two-finger pinch-zoom, and double-tap to toggle 2x. */
 const pts = new Map();
-let startDist = 0, startZoom = 1, panStart = null;
-let multiTouch = false, dragMoved = false, lastTap = 0;
+let startDist = 0, startZoom = 1, zoomOriginY = 0;
+let multiTouch = false, lastTap = 0;
 
 const dist = () => {
   const [a, b] = [...pts.values()];
   return Math.hypot(a.x - b.x, a.y - b.y);
 };
+const midY = () => {
+  const v = [...pts.values()];
+  return v.length === 2 ? (v[0].y + v[1].y) / 2 : 0;
+};
 const isCtrlTarget = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
+
+function setZoom(z) {
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+  vstage.style.transform = zoom === 1 ? "" : `scale(${zoom})`;
+  vstage.classList.toggle("zoomed", zoom !== 1);
+}
 
 vstage.addEventListener("pointerdown", e => {
   if (isCtrlTarget(e)) return;
   pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
-
   if (pts.size >= 2) {
     multiTouch = true;
     startDist = dist();
     startZoom = zoom;
-    panStart = null;
-    vstage.classList.add("zooming");
-  } else if (pts.size === 1) {
-    panStart = {x: e.clientX - panX, y: e.clientY - panY};
-    dragMoved = false;
-    try { vstage.setPointerCapture(e.pointerId); } catch {}
-    vstage.classList.add("zooming");
   }
 });
 
 vstage.addEventListener("pointermove", e => {
   if (!pts.has(e.pointerId)) return;
   pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
-
   if (pts.size >= 2 && startDist > 0) {
-    e.preventDefault();
-    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (dist() / startDist)));
-    if (zoom <= 1) panX = 0;
-    applyTransform();
-  } else if (pts.size === 1 && panStart) {
-    e.preventDefault();
-    // whole-card drag: vertical always, horizontal only when zoomed
-    panY = e.clientY - panStart.y;
-    if (zoom > 1) panX = e.clientX - panStart.x;
-    dragMoved = true;
-    applyTransform();
+    e.preventDefault();                         // pinch, don't scroll
+    setZoom(startZoom * (dist() / startDist));
   }
+  // single finger falls through to native scroll — nothing to do
 }, {passive: false});
 
 function endPointer(e) {
   const wasCtrl = isCtrlTarget(e);
-  try { if (vstage.hasPointerCapture(e.pointerId)) vstage.releasePointerCapture(e.pointerId); } catch {}
-  const hadPoint = pts.delete(e.pointerId);
+  const had = pts.delete(e.pointerId);
   if (pts.size < 2) startDist = 0;
-
   if (pts.size === 0) {
-    panStart = null;
-    vstage.classList.remove("zooming");
-    if (multiTouch) { multiTouch = false; lastTap = 0; if (zoom <= 1.02) resetZoom(); return; }
-    if (dragMoved) { dragMoved = false; lastTap = 0; return; }
-    if (hadPoint && !wasCtrl) {
+    if (multiTouch) {
+      multiTouch = false; lastTap = 0;
+      if (zoom <= 1.02) setZoom(1);
+      return;
+    }
+    // double-tap toggles 2x (single tap flips, handled by the card click)
+    if (had && !wasCtrl) {
       const now = Date.now();
-      if (now - lastTap < 280) {
-        zoom = zoom > 1.05 ? 1 : 2; panX = 0; panY = 0; applyTransform(); lastTap = 0;
-      } else { lastTap = now; }
+      if (now - lastTap < 280) { setZoom(zoom > 1.05 ? 1 : 2); lastTap = 0; }
+      else lastTap = now;
     }
   }
 }
