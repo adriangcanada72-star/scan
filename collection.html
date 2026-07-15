@@ -394,19 +394,22 @@
   }
 
 
-  /* ── phone thumbnail: logo + product name only ── */
+  /* ── phone thumbnail: logo + product name only, logo enlarged ── */
   @media(max-width:679px){
     .grid .stage .canna{display:none}          /* no THC/CBD */
     .grid .blurb{display:none}                 /* no tasting note */
     .grid .plate .crest{display:none}          /* no logo circle by the name */
-    .grid .plate{gap:0;justify-content:center;text-align:center}
+    .grid .plate{gap:0;justify-content:center;text-align:center;padding:5px 5px 6px}
     .grid .plate .txt{text-align:center}
     .grid .plate .txt .nm{
-      font-size:.72rem;-webkit-line-clamp:3;
+      font-size:.66rem;-webkit-line-clamp:2;
     }
-    .grid .plate .txt .pos{font-size:.44rem}
-    /* give the logo the room the numbers used to take */
-    .grid .hero{padding-bottom:2px}
+    .grid .plate .txt .pos{font-size:.42rem;margin-top:1px}
+    /* the hero (logo) claims almost the whole card; nameplate stays compact */
+    .grid .hero{padding:0}
+    .grid .hero .mark{padding:8px 6px 4px}
+    .grid .hero .mark img{max-width:100%;max-height:100%}
+    .grid .hero .mark .wm{font-size:1.15rem}
   }
 
   /* ══ SPECIES ══ */
