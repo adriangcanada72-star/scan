@@ -306,7 +306,19 @@
   }
   #viewer .vstage.zooming{transition:none}
   #viewer .card{cursor:pointer}
-  #viewer .sheet{padding:16px 15px 14px}
+  /* The back's sheet is a scroll container (overflow-y:auto). Inside the
+     viewer the browser was claiming touches on it for scrolling, so the
+     pinch/pan handler never saw the moves — zoom worked on the front and
+     died on the back. In here the card is big enough not to need its own
+     scroll, so hand every touch to the gesture handler instead. */
+  #viewer .face,
+  #viewer .sheet,
+  #viewer .stage{touch-action:none}
+  #viewer .sheet{padding:16px 15px 14px;overflow:visible}
+  /* the inputs still need normal touch behaviour */
+  #viewer input,
+  #viewer select,
+  #viewer button{touch-action:auto}
   /* everything on the back gets bigger in here — the whole point */
   #viewer .bh .n{font-size:1.16rem}
   #viewer .bh .n small{font-size:.72rem}
