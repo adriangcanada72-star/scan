@@ -336,16 +336,20 @@
     will-change:transform;transform-origin:top center;
   }
   #viewer .vstage.zoomed{transition:none}
-  /* front keeps the 5:7 shape; back flows to its content height */
+  /* No 3D flip in the viewer — we swap faces by display so the back can
+     flow tall for scrolling. Exactly one face shows at a time. */
   #viewer .scene{width:100%}
-  #viewer .card{position:relative;width:100%}
-  #viewer .card .front{position:relative;aspect-ratio:5/7}
-  #viewer .card .back{position:absolute;inset:0}
-  /* when flipped, show the back in normal flow (tall) and hide the front */
+  #viewer .card{position:relative;width:100%;transform:none !important;transform-style:flat}
+  #viewer .card .face{
+    position:relative;inset:auto;transform:none !important;
+    backface-visibility:visible;
+  }
+  /* default (front showing) */
+  #viewer .card .front{display:flex;aspect-ratio:5/7}
+  #viewer .card .back{display:none}
+  /* flipped (back showing, tall) */
   #viewer .card.flipped .front{display:none}
-  #viewer .card.flipped .back{position:relative;inset:auto;transform:none}
-  #viewer .card{transform:none !important} /* no rotateY; we swap faces */
-  #viewer .card .back{transform:none;backface-visibility:visible}
+  #viewer .card.flipped .back{display:flex}
   #viewer .vstage.zooming{transition:none}
   #viewer .card{cursor:pointer}
   /* The back's sheet is a scroll container (overflow-y:auto). Inside the
