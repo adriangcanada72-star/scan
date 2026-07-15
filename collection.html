@@ -393,6 +393,22 @@
     color:rgba(255,255,255,.5);font-size:.68rem;pointer-events:none;
   }
 
+
+  /* ── phone thumbnail: logo + product name only ── */
+  @media(max-width:679px){
+    .grid .stage .canna{display:none}          /* no THC/CBD */
+    .grid .blurb{display:none}                 /* no tasting note */
+    .grid .plate .crest{display:none}          /* no logo circle by the name */
+    .grid .plate{gap:0;justify-content:center;text-align:center}
+    .grid .plate .txt{text-align:center}
+    .grid .plate .txt .nm{
+      font-size:.72rem;-webkit-line-clamp:3;
+    }
+    .grid .plate .txt .pos{font-size:.44rem}
+    /* give the logo the room the numbers used to take */
+    .grid .hero{padding-bottom:2px}
+  }
+
   /* ══ SPECIES ══ */
   .indica{--border:#74C6EA;--deep:#2F7FA3;--c-thc:#97D6EF;--c-cbd:#ACDFF2}
   .sativa{--border:#F58A34;--deep:#B85F16;--c-thc:#F7A45D;--c-cbd:#F8B670}
