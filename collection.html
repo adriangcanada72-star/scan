@@ -328,11 +328,6 @@
     transition:transform .22s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
   }
-  /* the back can be taller than the 5:7 face; allow it to size to its
-     content so a one-finger drag pans through the whole thing */
-  #viewer .card.flipped{height:auto;min-height:100%}
-  #viewer .card.flipped .back{position:relative;height:auto}
-  #viewer .card.flipped .front{display:none}
   #viewer .vstage.zooming{transition:none}
   #viewer .card{cursor:pointer}
   /* The back's sheet is a scroll container (overflow-y:auto). Inside the
@@ -341,9 +336,15 @@
      died on the back. In here the card is big enough not to need its own
      scroll, so hand every touch to the gesture handler instead. */
   #viewer .face,
-  #viewer .sheet,
   #viewer .stage{touch-action:none}
-  #viewer .sheet{padding:16px 15px 14px;overflow:visible}
+  /* the back sheet is the one scrollable surface; one-finger drag scrolls
+     it. Hide the scrollbar — the drag is the control now. */
+  #viewer .sheet{
+    padding:16px 15px 14px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;touch-action:pan-y;
+  }
+  #viewer .sheet::-webkit-scrollbar{display:none}
   /* the inputs still need normal touch behaviour */
   #viewer input,
   #viewer select,
@@ -1951,8 +1952,9 @@ function wireCard(scene, p, {flippable = true} = {}) {
   if (flippable) {
     card.addEventListener("click", e => {
       if (isCtrl(e)) return;
-      // when zoomed in, a tap is for panning/inspecting — not flipping
       if (typeof zoom !== "undefined" && zoom > 1.05) return;
+      // a drag-scroll just happened — swallow the click so it doesn't flip
+      if (typeof dragMoved !== "undefined" && dragMoved) return;
       card.classList.toggle("flipped");
     });
     card.addEventListener("keydown", e => {
@@ -2137,15 +2139,17 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && viewer.classList.contains("open")) closeViewer();
 });
 
-/* ── pinch to zoom, drag to pan ──
-   Releasing a two-finger pinch fires a pointerup per finger. Without a
-   guard, the second one reads as a double-tap and instantly undoes the
-   zoom — so a multi-touch gesture is flagged and double-tap detection
-   is suppressed until a clean single tap comes along. */
+/* ── gestures in the viewer ──
+   Two fingers pinch-zoom the whole card. One finger: when the card is at
+   fit size, dragging scrolls the (taller) back sheet up and down — the
+   drag replaces the scrollbar. When zoomed in, one finger pans the
+   magnified card instead. */
 const pts = new Map();
-let startDist = 0, startZoom = 1, panStart = null;
-let multiTouch = false;      // true once 2+ fingers are down
-let dragMoved = false;       // true once a single-finger drag actually moves
+let startDist = 0, startZoom = 1;
+let panStart = null;          // {x,y} for zoomed panning
+let scrollStart = null;       // {y, top} for one-finger sheet scrolling
+let multiTouch = false;
+let dragMoved = false;
 let lastTap = 0;
 
 const dist = () => {
@@ -2153,9 +2157,10 @@ const dist = () => {
   return Math.hypot(a.x - b.x, a.y - b.y);
 };
 const isCtrlTarget = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
+const activeSheet = () => vstage.querySelector(".card.flipped .sheet");
 
 vstage.addEventListener("pointerdown", e => {
-  if (isCtrlTarget(e)) return;                 // leave the inputs alone
+  if (isCtrlTarget(e)) return;
   pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
 
   if (pts.size >= 2) {
@@ -2163,15 +2168,23 @@ vstage.addEventListener("pointerdown", e => {
     startDist = dist();
     startZoom = zoom;
     panStart = null;
+    scrollStart = null;
     vstage.classList.add("zooming");
   } else if (pts.size === 1) {
-    // one finger always drags — vertically to read a tall card back, and
-    // horizontally too once zoomed in. Capture the pointer so the drag
-    // survives the finger leaving the card.
-    panStart = {x: e.clientX - panX, y: e.clientY - panY};
     dragMoved = false;
-    try { vstage.setPointerCapture(e.pointerId); } catch {}
-    vstage.classList.add("zooming");
+    if (zoom > 1) {
+      // zoomed: one finger pans the magnified card
+      panStart = {x: e.clientX - panX, y: e.clientY - panY};
+      try { vstage.setPointerCapture(e.pointerId); } catch {}
+      vstage.classList.add("zooming");
+    } else {
+      // fit size: one finger scrolls the back sheet
+      const sheet = activeSheet();
+      if (sheet) {
+        scrollStart = {y: e.clientY, top: sheet.scrollTop};
+        try { vstage.setPointerCapture(e.pointerId); } catch {}
+      }
+    }
   }
 });
 
@@ -2183,16 +2196,22 @@ vstage.addEventListener("pointermove", e => {
     e.preventDefault();
     zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (dist() / startDist)));
     if (zoom <= 1) { panX = 0; panY = 0; }
-    applyTransform();   // clamps, so shrinking always pulls the card back in
-  } else if (pts.size === 1 && panStart) {
+    applyTransform();
+  } else if (pts.size === 1 && panStart && zoom > 1) {
+    // pan the zoomed card
     e.preventDefault();
-    // vertical always; horizontal only when zoomed (so an unzoomed card
-    // can't drift sideways off-centre)
+    panX = e.clientX - panStart.x;
     panY = e.clientY - panStart.y;
-    if (zoom > 1) panX = e.clientX - panStart.x;
-    if (Math.abs(panY - (e.clientY - panStart.y)) > 0 || Math.abs(e.clientX - (panStart.x + panX)) > 4) dragMoved = true;
     dragMoved = true;
     applyTransform();
+  } else if (pts.size === 1 && scrollStart) {
+    // drag to scroll the back sheet — finger down moves content down
+    const sheet = activeSheet();
+    if (sheet) {
+      e.preventDefault();
+      sheet.scrollTop = scrollStart.top - (e.clientY - scrollStart.y);
+      if (Math.abs(e.clientY - scrollStart.y) > 4) dragMoved = true;
+    }
   }
 }, {passive: false});
 
@@ -2204,22 +2223,18 @@ function endPointer(e) {
 
   if (pts.size === 0) {
     panStart = null;
+    scrollStart = null;
     vstage.classList.remove("zooming");
 
     if (multiTouch) {
-      // a pinch just ended — keep the zoom, and don't let this release
-      // be mistaken for a tap
       multiTouch = false;
       lastTap = 0;
-      if (zoom <= 1.02) resetZoom();   // pinched all the way back out
+      if (zoom <= 1.02) resetZoom();
       return;
     }
-
-    // a drag that actually moved is not a tap — don't let it flip or
-    // register as a double-tap
     if (dragMoved) { dragMoved = false; lastTap = 0; return; }
 
-    // clean single tap: double-tap toggles fit <-> 2x
+    // clean tap → double-tap toggles fit <-> 2x zoom
     if (hadPoint && !wasCtrl) {
       const now = Date.now();
       if (now - lastTap < 280) {
