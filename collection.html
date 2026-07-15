@@ -460,7 +460,10 @@
     .grid .rating{padding:5px 8px 7px;justify-content:center}
     .grid .rating .lbl{display:none}          /* stars only on thumbnails */
     .grid .rating .saved{display:none}
-    .grid .rating .star{font-size:.8rem}
+    .grid .rating .star{font-size:.86rem;cursor:default}
+    /* unrated stars read as hollow outlines so e.g. 4/5 shows ★★★★☆ */
+    .grid .rating .star{color:#fff;-webkit-text-stroke:1px #C4CBD2}
+    .grid .rating .star.on{color:#F5B301;-webkit-text-stroke:1px #E0A200}
     /* the hero (logo) claims almost the whole card; nameplate stays compact */
     .grid .hero{padding:0}
     .grid .hero .mark{padding:8px 6px 4px}
@@ -2331,6 +2334,15 @@ async function load() {
 
   out.innerHTML = `<div class="grid">${html}</div>`;
   hintEl.textContent = "Tap a card to open";
+
+  // paint each thumbnail's stars to show the saved rating at a glance
+  [...out.querySelectorAll(".grid .scene")].forEach((scene, i) => {
+    const gtin = list[i].gtin;
+    const score = RATINGS[gtin] || 0;
+    scene.querySelectorAll(".rating .star").forEach((s, idx) => {
+      s.classList.toggle("on", idx < score);
+    });
+  });
 
   [...out.querySelectorAll(".scene")].forEach((scene, i) => {
     const scan = list[i];
