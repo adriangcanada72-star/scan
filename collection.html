@@ -87,6 +87,8 @@
   .hero .mark img{
     width:100%;height:100%;object-fit:contain;display:block;
   }
+  /* the hero takes most of the card now; give the logo generous room */
+  .hero{padding-bottom:2px}
   .hero .mark .wm{
     font-family:'Playfair Display',serif;font-weight:800;font-size:1.7rem;
     line-height:1.08;color:#22303C;padding:0 4px;
@@ -155,33 +157,35 @@
   @media(min-width:680px){.plate .crest .ini{font-size:.9rem}}
   .plate .txt{position:relative;z-index:2;min-width:0}
   .plate .txt .nm{
-    font-family:'Anton',sans-serif;font-size:.62rem;color:#1B2430;
+    font-family:'Anton',sans-serif;font-size:.58rem;color:#1B2430;
     line-height:1.02;text-transform:uppercase;
   }
-  @media(min-width:680px){.plate .txt .nm{font-size:.8rem}}
-  #viewer .plate .txt .nm{font-size:1rem}
-  .plate .txt .finfo{
-    display:flex;gap:10px;margin-top:4px;
+  @media(min-width:680px){.plate .txt .nm{font-size:.76rem}}
+  /* info strip under the logo, above the nameplate line */
+  .heroinfo{
+    padding:0 8px 5px;text-align:center;
   }
-  .plate .txt .finfo .tc{
-    font-family:'Oswald',sans-serif;font-weight:600;font-size:.5rem;
+  .heroinfo .finfo{
+    display:flex;justify-content:center;gap:10px;
+  }
+  .heroinfo .finfo .tc{
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:.44rem;
     letter-spacing:.04em;color:#1B2430;
   }
-  @media(min-width:680px){.plate .txt .finfo .tc{font-size:.58rem}}
-  #viewer .plate .txt .finfo{gap:14px;margin-top:6px}
-  #viewer .plate .txt .finfo .tc{font-size:.7rem}
-
-  .plate .txt .fterps{
-    font-family:'DM Sans',sans-serif;font-size:.46rem;line-height:1.35;
-    color:#5C6771;margin-top:3px;font-weight:500;
+  .heroinfo .fterps{
+    font-family:'DM Sans',sans-serif;font-size:.4rem;line-height:1.3;
+    color:#5C6771;margin-top:2px;font-weight:500;
   }
-  @media(min-width:680px){.plate .txt .fterps{font-size:.52rem}}
-  #viewer .plate .txt .fterps{font-size:.62rem;margin-top:5px}
-  /* on tiny phone thumbnails keep just logo+name+stars; hide the detail */
-  @media(max-width:679px){
-    .grid .plate .txt .fterps{display:none}
-    .grid .plate .txt .finfo{display:none}
+  @media(min-width:680px){
+    .heroinfo .finfo .tc{font-size:.5rem}
+    .heroinfo .fterps{font-size:.46rem}
   }
+  #viewer .heroinfo{padding:0 12px 8px}
+  #viewer .heroinfo .finfo{gap:16px}
+  #viewer .heroinfo .finfo .tc{font-size:.66rem}
+  #viewer .heroinfo .fterps{font-size:.6rem;margin-top:4px}
+  /* on tiny phone thumbnails keep just logo+name+stars */
+  @media(max-width:679px){.grid .heroinfo{display:none}}
   .plate .txt .pos{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.4rem;
     letter-spacing:.12em;text-transform:uppercase;color:var(--deep);margin-top:2px;
@@ -1998,6 +2002,10 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
               ${p.size ? `<div class="sz">${esc(p.category || "")}${p.size ? " · " + esc(p.size) : ""}</div>` : ""}
             </div>
           </div>
+          <div class="heroinfo">
+            <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span></div>
+            ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
+          </div>
           ${blurb ? `<div class="blurb">${esc(blurb)}</div>` : ""}
           <div class="plate">
             <div class="burst"></div>
@@ -2005,8 +2013,6 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
             <div class="txt">
               <div class="nm">${esc(p.name || "Unknown")}</div>
               <div class="pos">${esc(sp)}</div>
-              <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span></div>
-              ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
             </div>
           </div>
           <div class="rating" data-gtin="${esc(scan.gtin || "")}">
@@ -2224,10 +2230,10 @@ function wireCard(scene, p, {flippable = true} = {}) {
     if (!front) return;
     const sp2 = labelOf(prodGtin);
     const fmt = n => { const x = Number(n); return (x % 1 === 0 ? x : Math.round(x*100)/100) + "%"; };
-    const tcs = front.querySelectorAll(".finfo .tc");
+    const tcs = front.querySelectorAll(".heroinfo .finfo .tc");
     if (tcs[0]) tcs[0].textContent = "THC " + (sp2.thc != null ? fmt(sp2.thc) : (p.thc || "\u2014"));
     if (tcs[1]) tcs[1].textContent = "CBD " + (sp2.cbd != null ? fmt(sp2.cbd) : (p.cbd || "\u2014"));
-    const line = front.querySelector(".fterps");
+    const line = front.querySelector(".heroinfo .fterps");
     if (line) {
       const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""));
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
@@ -2316,7 +2322,9 @@ function cssEscape(s) {
   return String(s).replace(/["\\]/g, "\\$&");
 }
 
+let openGtin = null;   // gtin of the product currently in the viewer
 function openViewer(p, scan) {
+  openGtin = scan && scan.gtin || "";
   vstage.innerHTML = cardHTML(p, scan);
   const scene = vstage.querySelector(".scene");
   wireCard(scene, p, {flippable: true});
@@ -2326,11 +2334,12 @@ function openViewer(p, scan) {
   document.body.style.overflow = "hidden";
 }
 function closeViewer() {
-  const g = vstage.querySelector(".rating")?.dataset.gtin;
+  const g = openGtin;
   viewer.classList.remove("open");
   viewer.setAttribute("aria-hidden", "true");
   vstage.innerHTML = "";
   document.body.style.overflow = "";
+  openGtin = null;
   if (g) { paintThumbStars(g); refreshThumb(g); }   // thumbnail mirrors any edits
 }
 
