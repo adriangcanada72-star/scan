@@ -1784,7 +1784,10 @@ const ENGINE = buildTriaxEngine(TRIAX_DATA);
 const READ_URL = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-Y2Eq6uBRqxN4Dl1Trcmg6otbfv9pPkm8ZnEBHDjxzXSt4/exec";
 const API_BASE = "https://glide-sync-service-production.up.railway.app";
 const USER_EMAIL = new URLSearchParams(location.search).get("user") || "";
-const RATINGS = {};   // { gtin: 1..5 } for the signed-in user, filled on load
+const RATINGS = {};   // { gtin: {rating, totalTerp, p1, p2, p3} } for the signed-in user
+// convenience accessors that tolerate the old plain-number shape too
+const ratingOf = g => { const e = RATINGS[g]; return (e && typeof e === "object") ? (e.rating || 0) : (e || 0); };
+const labelOf  = g => { const e = RATINGS[g]; return (e && typeof e === "object") ? e : {}; };
 
 const out = document.getElementById("out");
 const countEl = document.getElementById("count");
@@ -2025,17 +2028,18 @@ function wireCard(scene, p, {flippable = true} = {}) {
     const gtin = ratingEl.dataset.gtin;
     const stars = [...ratingEl.querySelectorAll(".star")];
     const savedTag = ratingEl.querySelector(".saved");
-    let current = RATINGS[gtin] || 0;
+    let current = ratingOf(gtin);
     const paint = n => stars.forEach((s, i) => s.classList.toggle("on", i < n));
     paint(current);
     stars.forEach((star, i) => {
       const val = i + 1;
       star.addEventListener("mouseenter", () => paint(val));
       const commit = async () => {
-        current = val; RATINGS[gtin] = val; paint(val);
+        current = val; paint(val);
+        RATINGS[gtin] = Object.assign({}, labelOf(gtin), { rating: val });
         if (typeof paintThumbStars === "function") paintThumbStars(gtin);  // live thumbnail update
         savedTag.classList.add("show");
-        await saveRating(gtin, val);
+        await savePrefs(gtin, { rating: val });
         setTimeout(() => savedTag.classList.remove("show"), 1400);
       };
       star.addEventListener("click", commit);
@@ -2048,6 +2052,8 @@ function wireCard(scene, p, {flippable = true} = {}) {
 
   const triax = sheet.querySelector(".triax");
   if (!triax) return;                       // no TRIAX for this product
+
+  const prodGtin = (card.querySelector(".rating") || {}).dataset ? card.querySelector(".rating").dataset.gtin : (scan && scan.gtin) || "";
 
   const toggle = sheet.querySelector(".triax-toggle");
   const resetBtn = sheet.querySelector(".triax-reset");
@@ -2151,11 +2157,40 @@ function wireCard(scene, p, {flippable = true} = {}) {
     showBaseline();
   });
 
+  // persist the entered percentages (debounced) whenever they change
+  let saveTimer = null;
+  function persistLabel() {
+    const fields = {
+      totalTerp: ttIn.value.trim() === "" ? "" : (parseFloat(ttIn.value) || 0),
+      p1: (rows[0] && rows[0].querySelector(".tp").value.trim() !== "") ? (parseFloat(rows[0].querySelector(".tp").value) || 0) : "",
+      p2: (rows[1] && rows[1].querySelector(".tp").value.trim() !== "") ? (parseFloat(rows[1].querySelector(".tp").value) || 0) : "",
+      p3: (rows[2] && rows[2].querySelector(".tp").value.trim() !== "") ? (parseFloat(rows[2].querySelector(".tp").value) || 0) : ""
+    };
+    RATINGS[prodGtin] = Object.assign({}, labelOf(prodGtin), fields);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => savePrefs(prodGtin, fields), 600);
+  }
+
   rows.forEach(r => {
     r.querySelector(".tn").addEventListener("change", recalc);
-    r.querySelector(".tp").addEventListener("input", recalc);
+    r.querySelector(".tp").addEventListener("input", () => { recalc(); persistLabel(); });
   });
-  [thcIn, cbdIn, ttIn].forEach(i => i.addEventListener("input", recalc));
+  ttIn.addEventListener("input", () => { recalc(); persistLabel(); });
+  [thcIn, cbdIn].forEach(i => i.addEventListener("input", recalc));
+
+  // ── prefill persisted percentages, and show Stage-2 bars by default ──
+  const saved = labelOf(prodGtin);
+  const hasSavedPct = saved && (saved.totalTerp != null || saved.p1 != null || saved.p2 != null || saved.p3 != null);
+  if (hasSavedPct) {
+    if (saved.totalTerp != null) ttIn.value = saved.totalTerp;
+    if (saved.p1 != null && rows[0]) rows[0].querySelector(".tp").value = saved.p1;
+    if (saved.p2 != null && rows[1]) rows[1].querySelector(".tp").value = saved.p2;
+    if (saved.p3 != null && rows[2]) rows[2].querySelector(".tp").value = saved.p3;
+    // reveal the editor (so the prefilled numbers are visible) and recalc
+    sheet.classList.add("editing");
+    toggle.style.display = "none";
+    recalc();
+  }
 }
 
 
@@ -2183,7 +2218,7 @@ function resetZoom() {
 
 // repaint a grid thumbnail's stars from the current RATINGS value
 function paintThumbStars(gtin) {
-  const score = RATINGS[gtin] || 0;
+  const score = ratingOf(gtin);
   document.querySelectorAll(`.grid .scene[data-gtin="${cssEscape(gtin)}"] .rating .star`).forEach((s, i) => {
     s.classList.toggle("on", i < score);
   });
@@ -2284,12 +2319,14 @@ vstage.addEventListener("pointerup", endPointer);
 vstage.addEventListener("pointercancel", endPointer);
 
 /* ══ LOAD ══ */
-async function saveRating(gtin, rating) {
+// saves the rating and/or the entered label percentages for a product.
+// Pass only what changed; the Sheet merges onto the existing row.
+async function savePrefs(gtin, fields) {
   try {
     await fetch(READ_URL, {
       method: "POST",
       headers: {"Content-Type": "text/plain;charset=utf-8"},
-      body: JSON.stringify({ type: "rating", user: USER_EMAIL, gtin, rating })
+      body: JSON.stringify(Object.assign({ type: "rating", user: USER_EMAIL, gtin }, fields))
     });
     return true;
   } catch { return false; }
