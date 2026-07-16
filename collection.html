@@ -1806,7 +1806,8 @@ const ENGINE = buildTriaxEngine(TRIAX_DATA);
 const READ_URL = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-Y2Eq6uBRqxN4Dl1Trcmg6otbfv9pPkm8ZnEBHDjxzXSt4/exec";
 const API_BASE = "https://glide-sync-service-production.up.railway.app";
 const USER_EMAIL = new URLSearchParams(location.search).get("user") || "";
-const RATINGS = {};   // { gtin: {rating, totalTerp, p1, p2, p3} } for the signed-in user
+const RATINGS = {};   // { gtin: {rating, totalTerp, p1, p2, p3, thc, cbd} } for the signed-in user
+const PRODUCTS = {};  // { gtin: {p, scan} } so a thumbnail can be re-rendered after edits
 // convenience accessors that tolerate the old plain-number shape too
 const ratingOf = g => { const e = RATINGS[g]; return (e && typeof e === "object") ? (e.rating || 0) : (e || 0); };
 const labelOf  = g => { const e = RATINGS[g]; return (e && typeof e === "object") ? e : {}; };
@@ -2078,6 +2079,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
         current = val; paint(val);
         RATINGS[gtin] = Object.assign({}, labelOf(gtin), { rating: val });
         if (typeof paintThumbStars === "function") paintThumbStars(gtin);  // live thumbnail update
+        if (typeof refreshThumb === "function") refreshThumb(gtin);
         savedTag.classList.add("show");
         await savePrefs(gtin, { rating: val });
         setTimeout(() => savedTag.classList.remove("show"), 1400);
@@ -2210,7 +2212,8 @@ function wireCard(scene, p, {flippable = true} = {}) {
       cbd: numOrEmpty(cbdIn)
     };
     RATINGS[prodGtin] = Object.assign({}, labelOf(prodGtin), fields);
-    refreshFront();                       // live-update the card front
+    refreshFront();                       // live-update the enlarged card front
+    if (typeof refreshThumb === "function") refreshThumb(prodGtin);  // and the thumbnail
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => savePrefs(prodGtin, fields), 600);
   }
@@ -2286,6 +2289,29 @@ function paintThumbStars(gtin) {
     s.classList.toggle("on", i < score);
   });
 }
+
+// Re-render a grid thumbnail's card from the latest data (saved THC/CBD,
+// terpene %, rating). Called live while editing and on viewer close, so the
+// thumbnail always mirrors the enlarged card without a page reload.
+function refreshThumb(gtin) {
+  const scene = document.querySelector(`.grid .scene[data-gtin="${cssEscape(gtin)}"]`);
+  const entry = PRODUCTS[gtin];
+  if (!scene || !entry) return;
+  const wasFlipped = scene.querySelector(".card")?.classList.contains("flipped");
+  scene.innerHTML = cardHTML(entry.p, entry.scan);
+  scene.dataset.gtin = gtin;
+  paintThumbStars(gtin);
+  // thumbnails open the viewer on tap — re-bind that handler
+  const card = scene.querySelector(".card");
+  if (card) {
+    const open = () => openViewer(entry.p, entry.scan);
+    card.addEventListener("click", e => { if (!e.target.closest(".rating")) open(); });
+    card.addEventListener("keydown", e => {
+      if ((e.key === " " || e.key === "Enter") && !e.target.closest(".rating")) { e.preventDefault(); open(); }
+    });
+    if (wasFlipped) card.classList.add("flipped");
+  }
+}
 function cssEscape(s) {
   return String(s).replace(/["\\]/g, "\\$&");
 }
@@ -2305,7 +2331,7 @@ function closeViewer() {
   viewer.setAttribute("aria-hidden", "true");
   vstage.innerHTML = "";
   document.body.style.overflow = "";
-  if (g) paintThumbStars(g);   // ensure the thumbnail reflects any new rating
+  if (g) { paintThumbStars(g); refreshThumb(g); }   // thumbnail mirrors any edits
 }
 
 vclose.addEventListener("click", closeViewer);
@@ -2449,10 +2475,18 @@ async function load() {
   out.innerHTML = `<div class="grid">${html}</div>`;
   hintEl.textContent = "Tap a card to open";
 
-  // tag each thumbnail with its gtin and paint its saved rating
+  // tag each thumbnail with its gtin, remember its data, paint its rating
   [...out.querySelectorAll(".grid .scene")].forEach((scene, i) => {
-    scene.dataset.gtin = list[i].gtin || "";
-    paintThumbStars(list[i].gtin);
+    const scan = list[i];
+    const prod = products[i] || {
+      name: scan.name, brand: scan.brand, category: scan.category,
+      species: scan.species, size: scan.size, thc: scan.thc, cbd: scan.cbd,
+      terpenes: [scan.terp1, scan.terp2, scan.terp3].filter(Boolean),
+      description: scan.description, sku: ""
+    };
+    scene.dataset.gtin = scan.gtin || "";
+    PRODUCTS[scan.gtin] = { p: prod, scan };
+    paintThumbStars(scan.gtin);
   });
 
   [...out.querySelectorAll(".scene")].forEach((scene, i) => {
