@@ -155,19 +155,33 @@
   @media(min-width:680px){.plate .crest .ini{font-size:.9rem}}
   .plate .txt{position:relative;z-index:2;min-width:0}
   .plate .txt .nm{
-    font-family:'Anton',sans-serif;font-size:.66rem;color:#1B2430;
+    font-family:'Anton',sans-serif;font-size:.62rem;color:#1B2430;
     line-height:1.02;text-transform:uppercase;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
-  @media(min-width:680px){.plate .txt .nm{font-size:.94rem}}
+  @media(min-width:680px){.plate .txt .nm{font-size:.8rem}}
+  #viewer .plate .txt .nm{font-size:1rem}
+  .plate .txt .finfo{
+    display:flex;gap:10px;margin-top:4px;
+  }
+  .plate .txt .finfo .tc{
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:.5rem;
+    letter-spacing:.04em;color:#1B2430;
+  }
+  @media(min-width:680px){.plate .txt .finfo .tc{font-size:.58rem}}
+  #viewer .plate .txt .finfo{gap:14px;margin-top:6px}
+  #viewer .plate .txt .finfo .tc{font-size:.7rem}
+
   .plate .txt .fterps{
-    font-family:'DM Sans',sans-serif;font-size:.5rem;line-height:1.35;
+    font-family:'DM Sans',sans-serif;font-size:.46rem;line-height:1.35;
     color:#5C6771;margin-top:3px;font-weight:500;
   }
-  @media(min-width:680px){.plate .txt .fterps{font-size:.56rem}}
-  #viewer .plate .txt .fterps{font-size:.66rem;margin-top:5px}
-  /* hide the front terpene line on tiny phone thumbnails (logo+name focus) */
-  @media(max-width:679px){.grid .plate .txt .fterps{display:none}}
+  @media(min-width:680px){.plate .txt .fterps{font-size:.52rem}}
+  #viewer .plate .txt .fterps{font-size:.62rem;margin-top:5px}
+  /* on tiny phone thumbnails keep just logo+name+stars; hide the detail */
+  @media(max-width:679px){
+    .grid .plate .txt .fterps{display:none}
+    .grid .plate .txt .finfo{display:none}
+  }
   .plate .txt .pos{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.4rem;
     letter-spacing:.12em;text-transform:uppercase;color:var(--deep);margin-top:2px;
@@ -437,7 +451,7 @@
   #viewer .blurb{font-size:.68rem}
   #viewer .canna .b .k{font-size:.6rem}
   #viewer .canna .b .v{font-size:1.06rem}
-  #viewer .plate .txt .nm{font-size:1.28rem}
+  #viewer .plate .txt .nm{font-size:1rem;line-height:1.05}
   #viewer .plate .txt .pos{font-size:.72rem}
   #viewer .plate .crest{width:62px;height:62px}
   #viewer .cardno{font-size:.56rem}
@@ -462,7 +476,7 @@
     .grid .plate{gap:0;justify-content:center;text-align:center;padding:5px 5px 6px}
     .grid .plate .txt{text-align:center}
     .grid .plate .txt .nm{
-      font-size:.72rem;-webkit-line-clamp:2;
+      font-size:.6rem;line-height:1.05;
     }
     .grid .plate .txt .pos{font-size:.5rem;margin-top:2px}
     .grid .rating{padding:5px 8px 7px;justify-content:center}
@@ -1984,16 +1998,13 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
             </div>
           </div>
           ${blurb ? `<div class="blurb">${esc(blurb)}</div>` : ""}
-          <div class="canna">
-            <div class="b thc"><div class="k">THC</div><div class="v">${esc(thcDisplay)}</div></div>
-            <div class="b cbd"><div class="k">CBD</div><div class="v">${esc(cbdDisplay)}</div></div>
-          </div>
           <div class="plate">
             <div class="burst"></div>
             <div class="crest">${crestImg}</div>
             <div class="txt">
               <div class="nm">${esc(p.name || "Unknown")}</div>
               <div class="pos">${esc(sp)}</div>
+              <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span></div>
               ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
             </div>
           </div>
@@ -2210,11 +2221,12 @@ function wireCard(scene, p, {flippable = true} = {}) {
     if (!front) return;
     const sp2 = labelOf(prodGtin);
     const fmt = n => { const x = Number(n); return (x % 1 === 0 ? x : Math.round(x*100)/100) + "%"; };
-    if (sp2.thc != null) { const el = front.querySelector(".canna .thc .v"); if (el) el.textContent = fmt(sp2.thc); }
-    if (sp2.cbd != null) { const el = front.querySelector(".canna .cbd .v"); if (el) el.textContent = fmt(sp2.cbd); }
+    const tcs = front.querySelectorAll(".finfo .tc");
+    if (tcs[0]) tcs[0].textContent = "THC " + (sp2.thc != null ? fmt(sp2.thc) : (p.thc || "\u2014"));
+    if (tcs[1]) tcs[1].textContent = "CBD " + (sp2.cbd != null ? fmt(sp2.cbd) : (p.cbd || "\u2014"));
     const line = front.querySelector(".fterps");
     if (line) {
-      const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+\d.*$/, ""));
+      const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""));
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
       line.textContent = names.map((n, i) => n + (pcs[i] != null ? " " + fmt(pcs[i]) : "")).join(" \u00b7 ");
     }
