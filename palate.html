@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Your Palate · The Terpene Sommelier</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:transparent}
+  body{font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#1B2430}
+  .wrap{max-width:640px;margin:0 auto;padding:14px 14px 40px}
+
+  .head{margin-bottom:6px}
+  .head h1{font-family:'Playfair Display',serif;font-weight:800;font-size:1.25rem}
+  .head p{color:#75808C;font-size:.82rem;line-height:1.5;margin-top:3px}
+
+  .summary{
+    background:#F4F7F9;border-radius:12px;padding:12px 14px;margin:14px 0 20px;
+    font-size:.84rem;line-height:1.6;color:#3C4855;
+  }
+  .summary b{color:#1B2430}
+  .summary .stat{
+    display:flex;gap:18px;margin-top:8px;padding-top:8px;border-top:1px solid #E2E8EC;
+  }
+  .summary .stat div{font-size:.72rem;color:#75808C}
+  .summary .stat b{display:block;font-family:'Oswald',sans-serif;font-size:1.05rem;color:#1B2430}
+
+  .msg{text-align:center;color:#8B959F;font-size:.9rem;line-height:1.8;padding:44px 20px}
+  .msg b{color:#1B2430;display:block;margin-bottom:6px;font-size:1rem}
+
+  .section{margin-bottom:24px}
+  .section > h2{
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:.76rem;
+    letter-spacing:.16em;text-transform:uppercase;margin-bottom:2px;
+    display:flex;align-items:center;gap:7px;
+  }
+  .section > h2 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .section.fav > h2{color:#2E7D46}
+  .section.fav .dot{background:#2FB457}
+  .section.avoid > h2{color:#C4443A}
+  .section.avoid .dot{background:#E2574C}
+  .section > .sub{font-size:.72rem;color:#9AA3AC;margin-bottom:10px}
+
+  .terp{
+    display:flex;align-items:center;gap:11px;padding:9px 0;
+    border-bottom:1px solid #EDF0F2;
+  }
+  .terp .rank{
+    font-family:'Oswald',sans-serif;font-weight:700;font-size:.8rem;
+    color:#C4CBD2;width:20px;flex:0 0 auto;text-align:center;
+  }
+  .terp .body{flex:1;min-width:0}
+  .terp .name{
+    font-family:'DM Sans',sans-serif;font-weight:700;font-size:.92rem;
+    display:flex;align-items:baseline;gap:7px;
+  }
+  .terp .name .aroma{
+    font-family:'Oswald',sans-serif;font-weight:500;font-size:.56rem;
+    letter-spacing:.1em;text-transform:uppercase;color:#9AA3AC;
+  }
+  .terp .meter{
+    position:relative;height:6px;border-radius:4px;background:#ECEEF0;
+    margin-top:5px;overflow:hidden;
+  }
+  .terp .meter::after{
+    content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(27,36,48,.12);
+  }
+  .terp .meter .fill{
+    position:absolute;top:0;bottom:0;border-radius:4px;transition:width .5s,left .5s;
+  }
+  .fav .terp .meter .fill{background:#2FB457}
+  .avoid .terp .meter .fill{background:#E2574C}
+  .terp .side{flex:0 0 auto;text-align:right;min-width:64px}
+  .terp .side .avg{
+    font-family:'Oswald',sans-serif;font-weight:700;font-size:.9rem;color:#1B2430;
+  }
+  .terp .side .avg .s{color:#F5B301;font-size:.8rem}
+  .terp .side .n{font-size:.6rem;color:#9AA3AC;margin-top:1px}
+  .terp .side .n.low{color:#D08A2E}
+
+  .legend{
+    font-size:.68rem;color:#9AA3AC;line-height:1.6;margin-top:6px;
+    padding-top:12px;border-top:1px solid #EDF0F2;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Your Palate</h1>
+    <p>Built from the products you rate. The more you rate, the sharper it gets.</p>
+  </div>
+  <div id="out"><div class="msg">Reading your ratings…</div></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Your Palate — turns a user's ratings into favorite / avoid terpenes.
+
+   Algorithm (as specced):
+   • Only RATED products count (a rating tells us preference).
+   • Each product's rating is CENTERED: 1★=-2 … 3★=0 … 5★=+2, so a
+     neutral "it was fine" doesn't push any terpene either way.
+   • For each terpene in a product, the centered rating is weighted by
+     that terpene's share of the ENTERED percentages. If the user gave
+     no percentages for a product, its terpenes share equal weight.
+   • Positions 1/2/3 are never used as weight — only entered %.
+   • A terpene's score = weighted average of centered ratings across
+     every rated product containing it (range -2..+2).
+   • Positive → favorite, negative → avoid. All rated terpenes shown;
+     ones backed by few products are flagged so confidence is visible.
+══════════════════════════════════════════════════════════════ */
+const READ_URL = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-Y2Eq6uBRqxN4Dl1Trcmg6otbfv9pPkm8ZnEBHDjxzXSt4/exec";
+const USER_EMAIL = new URLSearchParams(location.search).get("user") || "";
+const out = document.getElementById("out");
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* terpene name normalisation — mirrors the collection page so the two agree */
+const ALIASES = {
+  "trans-Caryophyllene":"Beta-Caryophyllene","trans-beta-Caryophyllene":"Beta-Caryophyllene",
+  "Caryophyllene":"Beta-Caryophyllene","Myrcene":"Beta-Myrcene","Humulene":"Alpha-Humulene",
+  "Beta-Linalool":"Linalool","Alpha-Bisabolol":"Bisabolol","Beta-Bisabolol":"Bisabolol",
+  "Alpha-Farnesene":"Farnesene","Beta-Farnesene":"Farnesene","Gamma-Terpinolene":"Terpinolene"
+};
+function normTerp(raw) {
+  if (!raw) return "";
+  const r = String(raw).trim();
+  if (ALIASES[r]) return ALIASES[r];
+  return r;
+}
+const AROMA_NOTE = {
+  "Beta-Myrcene":"Earth","Beta-Caryophyllene":"Pepper","Limonene":"Citrus","D-Limonene":"Citrus",
+  "Alpha-Pinene":"Pine","Beta-Pinene":"Pine","Linalool":"Floral","Alpha-Humulene":"Hops",
+  "Terpinolene":"Herbal","Ocimene":"Sweet","Bisabolol":"Chamomile","Nerolidol":"Woody",
+  "Guaiol":"Resin","Farnesene":"Apple","Eucalyptol":"Mint","Valencene":"Orange",
+  "Terpineol":"Lilac","Geraniol":"Rose","Ocimene ":"Sweet","Camphene":"Camphor"
+};
+
+/* ── the algorithm ── */
+function computePalate(scans, ratings) {
+  // index scans by GTIN so a rating can find its product's terpenes
+  const byGtin = {};
+  scans.forEach(s => { if (s.gtin) byGtin[s.gtin] = s; });
+
+  const acc = {};   // terpene -> {wsum, wrate, products, ratingSum}
+  let ratedCount = 0;
+
+  Object.keys(ratings).forEach(gtin => {
+    const entry = ratings[gtin];
+    const rating = (entry && typeof entry === "object") ? entry.rating : entry;
+    if (!(rating >= 1 && rating <= 5)) return;      // must be rated
+    const scan = byGtin[gtin];
+    if (!scan) return;                              // need the terpene snapshot
+
+    ratedCount++;
+    const centered = rating - 3;                    // -2..+2
+
+    // terpene names from the snapshot
+    const names = [scan.terp1, scan.terp2, scan.terp3].map(normTerp).filter(Boolean);
+    if (!names.length) return;
+
+    // entered percentages (persisted on the rating), aligned to positions
+    const pcts = (entry && typeof entry === "object")
+      ? [entry.p1, entry.p2, entry.p3]
+      : [null, null, null];
+    const havePct = pcts.some(p => p != null && p > 0);
+    const totalPct = havePct ? pcts.reduce((a, b) => a + (b > 0 ? b : 0), 0) : 0;
+
+    names.forEach((name, i) => {
+      let w;
+      if (havePct && totalPct > 0) {
+        const p = pcts[i];
+        w = (p != null && p > 0) ? p / totalPct : 0;   // share of entered content
+      } else {
+        w = 1 / names.length;                          // equal weight fallback
+      }
+      if (w <= 0) return;
+      const a = acc[name] || (acc[name] = {wsum:0, wrate:0, products:0, ratingSum:0});
+      a.wsum += w;
+      a.wrate += w * centered;
+      a.products += 1;
+      a.ratingSum += rating;
+    });
+  });
+
+  const terps = Object.keys(acc).map(name => {
+    const a = acc[name];
+    return {
+      terpene: name,
+      score: a.wsum ? a.wrate / a.wsum : 0,          // -2..+2
+      avg: a.products ? a.ratingSum / a.products : 0,
+      products: a.products
+    };
+  });
+
+  return { terps, ratedCount };
+}
+
+/* ── rendering ── */
+function starStr(avg) {
+  const full = Math.round(avg);
+  return "★".repeat(full) + "☆".repeat(5 - full);
+}
+function terpRow(t, rank, kind) {
+  // meter: map score -2..+2 to a bar growing from centre
+  const pct = Math.min(100, Math.abs(t.score) / 2 * 50);   // half-width max
+  const left = t.score >= 0 ? 50 : (50 - pct);
+  const low = t.products < 2;
+  return `
+    <div class="terp">
+      <span class="rank">${rank}</span>
+      <div class="body">
+        <div class="name">${esc(t.terpene)}<span class="aroma">${esc(AROMA_NOTE[t.terpene] || "")}</span></div>
+        <div class="meter"><span class="fill" style="left:${left}%;width:${pct}%"></span></div>
+      </div>
+      <div class="side">
+        <div class="avg"><span class="s">${esc(starStr(t.avg))}</span></div>
+        <div class="n ${low ? "low" : ""}">${t.products} product${t.products === 1 ? "" : "s"}${low ? " · new" : ""}</div>
+      </div>
+    </div>`;
+}
+
+function render(data) {
+  const { terps, ratedCount } = data;
+
+  if (!USER_EMAIL) {
+    out.innerHTML = `<div class="msg"><b>Sign in to see your palate</b>Rate the products in your collection and your taste profile builds here.</div>`;
+    return;
+  }
+  if (ratedCount === 0) {
+    out.innerHTML = `<div class="msg"><b>No ratings yet</b>Open a card in your collection, give it a star rating, and your palate starts here.</div>`;
+    return;
+  }
+
+  const favs = terps.filter(t => t.score > 0.15).sort((a, b) => b.score - a.score);
+  const avoid = terps.filter(t => t.score < -0.15).sort((a, b) => a.score - b.score);
+  const neutral = terps.length - favs.length - avoid.length;
+
+  // a plain-language headline
+  let head = "";
+  if (favs.length) {
+    const top = favs.slice(0, 3).map(t => t.terpene).join(", ");
+    head += `You lean toward <b>${esc(top)}</b>. `;
+  }
+  if (avoid.length) {
+    const bot = avoid.slice(0, 2).map(t => t.terpene).join(" and ");
+    head += `You tend to rate <b>${esc(bot)}</b> lower.`;
+  }
+  if (!head) head = "Keep rating — a few more and clear patterns will emerge.";
+
+  out.innerHTML = `
+    <div class="summary">
+      ${head}
+      <div class="stat">
+        <div><b>${ratedCount}</b>rated</div>
+        <div><b>${terps.length}</b>terpenes seen</div>
+        <div><b>${favs.length}</b>favorites</div>
+      </div>
+    </div>
+
+    ${favs.length ? `
+    <div class="section fav">
+      <h2><span class="dot"></span>Favorites</h2>
+      <div class="sub">Terpenes in the products you rate highest.</div>
+      ${favs.map((t, i) => terpRow(t, i + 1, "fav")).join("")}
+    </div>` : ""}
+
+    ${avoid.length ? `
+    <div class="section avoid">
+      <h2><span class="dot"></span>Tend to Avoid</h2>
+      <div class="sub">Terpenes in the products you rate lowest.</div>
+      ${avoid.map((t, i) => terpRow(t, i + 1, "avoid")).join("")}
+    </div>` : ""}
+
+    <div class="legend">
+      Scores weight each rating by the terpene percentages you enter on a card;
+      without percentages, a product's three terpenes count equally. Position on
+      the label (1st, 2nd, 3rd) is never used — it doesn't indicate dominance.
+      A terpene marked <b>new</b> is backed by a single product, so it will move
+      as you rate more.
+    </div>`;
+}
+
+/* ── load ── */
+async function load() {
+  if (!USER_EMAIL) { render({ terps: [], ratedCount: 0 }); return; }
+  try {
+    const r = await fetch(`${READ_URL}?type=palate&user=${encodeURIComponent(USER_EMAIL)}`);
+    const d = await r.json();
+    const scans = Array.isArray(d.scans) ? d.scans : [];
+    const ratings = d.ratings || {};
+    render(computePalate(scans, ratings));
+  } catch {
+    out.innerHTML = `<div class="msg"><b>Couldn't load your palate</b>Check your connection and pull down to refresh.</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>
