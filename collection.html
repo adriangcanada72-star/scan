@@ -160,6 +160,14 @@
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
   @media(min-width:680px){.plate .txt .nm{font-size:.94rem}}
+  .plate .txt .fterps{
+    font-family:'DM Sans',sans-serif;font-size:.5rem;line-height:1.35;
+    color:#5C6771;margin-top:3px;font-weight:500;
+  }
+  @media(min-width:680px){.plate .txt .fterps{font-size:.56rem}}
+  #viewer .plate .txt .fterps{font-size:.66rem;margin-top:5px}
+  /* hide the front terpene line on tiny phone thumbnails (logo+name focus) */
+  @media(max-width:679px){.grid .plate .txt .fterps{display:none}}
   .plate .txt .pos{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.4rem;
     letter-spacing:.12em;text-transform:uppercase;color:var(--deep);margin-top:2px;
@@ -1886,6 +1894,18 @@ function cardHTML(p, scan, idx) {
   const tri = p.triax || {};
   const hasTriax = tri.cerebral !== undefined && tri.cerebral !== null;
 
+  // the user's saved label for this product (rating + entered percentages)
+  const savedPref = (typeof labelOf === "function") ? labelOf(scan && scan.gtin) : {};
+  const fmtPct = n => {
+    const x = Number(n);
+    return (x % 1 === 0) ? x + "%" : (Math.round(x * 100) / 100) + "%";
+  };
+  // THC/CBD: show the user's entered value if they gave one, else catalog range
+  const thcDisplay = (savedPref && savedPref.thc != null) ? fmtPct(savedPref.thc) : (p.thc || "\u2014");
+  const cbdDisplay = (savedPref && savedPref.cbd != null) ? fmtPct(savedPref.cbd) : (p.cbd || "\u2014");
+  // per-position saved terpene %
+  const savedTerpPct = [savedPref.p1, savedPref.p2, savedPref.p3];
+
   // the logo stands alone — if it fails to load, the brand name takes its place
   const logoImg = p.logo
     ? `<img src="${esc(p.logo)}" alt="${esc(p.brand)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'wm',textContent:${JSON.stringify(p.brand || "")}}))">`
@@ -1895,6 +1915,12 @@ function cardHTML(p, scan, idx) {
   // description (written for this exact terpene trio) beats the BCLDB
   // marketing copy when we have one; otherwise trim the catalog text.
   const blurb = blendFor(terps) || firstSentence(p.description);
+
+  // a compact terpene line for the FRONT: "Myrcene 0.9% · Limonene 0.3% · …"
+  const frontTerps = terps.map((t, i) => {
+    const pc = savedTerpPct[i];
+    return esc(t) + (pc != null ? " " + fmtPct(pc) : "");
+  }).join(" \u00b7 ");
 
   const crestImg = p.logo
     ? `<img src="${esc(p.logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ini',textContent:${JSON.stringify(initials(p.brand))}}))">`
@@ -1933,9 +1959,11 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
 
   const terpRows = terps.length ? terps.map((t, i) => {
     const r = resolveTerp(t);
+    const pc = savedTerpPct[i];
+    const nameWithPct = esc(t) + (pc != null ? " " + fmtPct(pc) : "");
     return `      <div class="tr" data-terp="${esc(r)}">
         <span class="r">${i + 1}</span>
-        <span class="t">${esc(t)}</span>
+        <span class="t">${nameWithPct}</span>
         <select class="tn"></select>
         <span class="x">${esc(AROMA_NOTE[r] || "")}</span>
         <input class="tp" type="number" step="0.01" min="0" placeholder="%">
@@ -1957,8 +1985,8 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
           </div>
           ${blurb ? `<div class="blurb">${esc(blurb)}</div>` : ""}
           <div class="canna">
-            <div class="b thc"><div class="k">THC</div><div class="v">${esc(p.thc || "—")}</div></div>
-            <div class="b cbd"><div class="k">CBD</div><div class="v">${esc(p.cbd || "—")}</div></div>
+            <div class="b thc"><div class="k">THC</div><div class="v">${esc(thcDisplay)}</div></div>
+            <div class="b cbd"><div class="k">CBD</div><div class="v">${esc(cbdDisplay)}</div></div>
           </div>
           <div class="plate">
             <div class="burst"></div>
@@ -1966,6 +1994,7 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
             <div class="txt">
               <div class="nm">${esc(p.name || "Unknown")}</div>
               <div class="pos">${esc(sp)}</div>
+              ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
             </div>
           </div>
           <div class="rating" data-gtin="${esc(scan.gtin || "")}">
@@ -2159,16 +2188,36 @@ function wireCard(scene, p, {flippable = true} = {}) {
 
   // persist the entered percentages (debounced) whenever they change
   let saveTimer = null;
+  const numOrEmpty = el => (el && el.value.trim() !== "") ? (parseFloat(el.value) || 0) : "";
   function persistLabel() {
     const fields = {
-      totalTerp: ttIn.value.trim() === "" ? "" : (parseFloat(ttIn.value) || 0),
-      p1: (rows[0] && rows[0].querySelector(".tp").value.trim() !== "") ? (parseFloat(rows[0].querySelector(".tp").value) || 0) : "",
-      p2: (rows[1] && rows[1].querySelector(".tp").value.trim() !== "") ? (parseFloat(rows[1].querySelector(".tp").value) || 0) : "",
-      p3: (rows[2] && rows[2].querySelector(".tp").value.trim() !== "") ? (parseFloat(rows[2].querySelector(".tp").value) || 0) : ""
+      totalTerp: numOrEmpty(ttIn),
+      p1: rows[0] ? numOrEmpty(rows[0].querySelector(".tp")) : "",
+      p2: rows[1] ? numOrEmpty(rows[1].querySelector(".tp")) : "",
+      p3: rows[2] ? numOrEmpty(rows[2].querySelector(".tp")) : "",
+      thc: numOrEmpty(thcIn),
+      cbd: numOrEmpty(cbdIn)
     };
     RATINGS[prodGtin] = Object.assign({}, labelOf(prodGtin), fields);
+    refreshFront();                       // live-update the card front
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => savePrefs(prodGtin, fields), 600);
+  }
+
+  // repaint the front THC/CBD blocks and terpene line from saved values
+  function refreshFront() {
+    const front = card.querySelector(".front");
+    if (!front) return;
+    const sp2 = labelOf(prodGtin);
+    const fmt = n => { const x = Number(n); return (x % 1 === 0 ? x : Math.round(x*100)/100) + "%"; };
+    if (sp2.thc != null) { const el = front.querySelector(".canna .thc .v"); if (el) el.textContent = fmt(sp2.thc); }
+    if (sp2.cbd != null) { const el = front.querySelector(".canna .cbd .v"); if (el) el.textContent = fmt(sp2.cbd); }
+    const line = front.querySelector(".fterps");
+    if (line) {
+      const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+\d.*$/, ""));
+      const pcs = [sp2.p1, sp2.p2, sp2.p3];
+      line.textContent = names.map((n, i) => n + (pcs[i] != null ? " " + fmt(pcs[i]) : "")).join(" \u00b7 ");
+    }
   }
 
   rows.forEach(r => {
@@ -2176,16 +2225,18 @@ function wireCard(scene, p, {flippable = true} = {}) {
     r.querySelector(".tp").addEventListener("input", () => { recalc(); persistLabel(); });
   });
   ttIn.addEventListener("input", () => { recalc(); persistLabel(); });
-  [thcIn, cbdIn].forEach(i => i.addEventListener("input", recalc));
+  [thcIn, cbdIn].forEach(i => i.addEventListener("input", () => { recalc(); persistLabel(); }));
 
   // ── prefill persisted percentages, and show Stage-2 bars by default ──
   const saved = labelOf(prodGtin);
-  const hasSavedPct = saved && (saved.totalTerp != null || saved.p1 != null || saved.p2 != null || saved.p3 != null);
-  if (hasSavedPct) {
+  const hasSavedPct = saved && (saved.totalTerp != null || saved.p1 != null || saved.p2 != null || saved.p3 != null || saved.thc != null || saved.cbd != null);
+  if (hasSavedPct || saved.thc != null || saved.cbd != null) {
     if (saved.totalTerp != null) ttIn.value = saved.totalTerp;
     if (saved.p1 != null && rows[0]) rows[0].querySelector(".tp").value = saved.p1;
     if (saved.p2 != null && rows[1]) rows[1].querySelector(".tp").value = saved.p2;
     if (saved.p3 != null && rows[2]) rows[2].querySelector(".tp").value = saved.p3;
+    if (saved.thc != null) thcIn.value = saved.thc;
+    if (saved.cbd != null) cbdIn.value = saved.cbd;
     // reveal the editor (so the prefilled numbers are visible) and recalc
     sheet.classList.add("editing");
     toggle.style.display = "none";
