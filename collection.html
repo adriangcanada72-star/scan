@@ -184,8 +184,13 @@
   #viewer .heroinfo .finfo{gap:16px}
   #viewer .heroinfo .finfo .tc{font-size:.66rem}
   #viewer .heroinfo .fterps{font-size:.6rem;margin-top:4px}
-  /* on tiny phone thumbnails keep just logo+name+stars */
-  @media(max-width:679px){.grid .heroinfo{display:none}}
+  /* phone thumbnails: show the numbers, just smaller */
+  @media(max-width:679px){
+    .grid .heroinfo{padding:0 4px 3px}
+    .grid .heroinfo .finfo{gap:7px}
+    .grid .heroinfo .finfo .tc{font-size:.4rem}
+    .grid .heroinfo .fterps{font-size:.36rem;line-height:1.25;margin-top:1px}
+  }
   .plate .txt .pos{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.4rem;
     letter-spacing:.12em;text-transform:uppercase;color:var(--deep);margin-top:2px;
