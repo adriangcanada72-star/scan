@@ -126,6 +126,11 @@
   .notfound b{color:var(--ink)}
 
   .hide{display:none!important}
+  .btn-alt{
+    background:transparent;color:#31AA64;border:1.5px solid #31AA64;
+    margin-top:8px;
+  }
+  .btn-alt:active{background:rgba(49,170,100,.08)}
 </style>
 </head>
 <body>
@@ -142,6 +147,8 @@
   </div>
 
   <button class="btn" id="startBtn">Start scanning</button>
+  <button class="btn btn-alt" id="photoBtn">Trouble scanning? Take a photo</button>
+  <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
   <p id="scanHint">Point your camera at the barcode on the package label.</p>
   <p class="status" id="status"></p>
 
@@ -411,6 +418,86 @@ startBtn.onclick = async () => {
     startBtn.classList.remove("hide");
   }
 };
+
+
+/* ============ PHOTO DECODE (fallback for barcodes that won't live-scan) ============
+   A still photo is full-resolution and sharp — the same decoder that fails on
+   shaky, autofocus-hunting video frames often succeeds on a crisp still. Runs
+   entirely on-device; no network, no cost. We try the image at full size, and
+   if that fails, upscaled, since small/worn codes decode better enlarged. */
+const photoBtn = document.getElementById("photoBtn");
+const photoInput = document.getElementById("photoInput");
+
+photoBtn.onclick = () => photoInput.click();
+
+photoInput.onchange = async () => {
+  const file = photoInput.files && photoInput.files[0];
+  photoInput.value = "";                      // allow re-picking the same file
+  if (!file) return;
+
+  running = false;
+  stopStreams();
+  startBtn.textContent = "Scan another";
+  startBtn.classList.remove("hide");
+  setStatus("Reading photo…");
+
+  try {
+    const bitmap = await loadImage(file);
+    const text = await decodeStill(bitmap);
+    if (text) {
+      await handleScan(parseScan(text));
+    } else {
+      setStatus("Couldn't read a barcode in that photo. Try again with the code filling the frame, in good light — or enter it manually below.", true);
+    }
+  } catch (e) {
+    setStatus("Couldn't process that photo (" + (e && e.name ? e.name : "error") + "). Try again, or enter the code manually.", true);
+  }
+};
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// draw the image (optionally scaled) to a canvas and hand it to ZXing
+async function decodeStill(img) {
+  const reader = new ZXing.BrowserMultiFormatReader(stillHints());
+  // try progressively larger renders — small/worn codes read better enlarged
+  const scales = [1, 1.6, 2.4];
+  for (const s of scales) {
+    const canvas = document.createElement("canvas");
+    // cap the long edge so huge phone photos don't blow past canvas limits
+    const maxEdge = 2600;
+    let w = img.naturalWidth * s, h = img.naturalHeight * s;
+    const longEdge = Math.max(w, h);
+    if (longEdge > maxEdge) { const k = maxEdge / longEdge; w *= k; h *= k; }
+    canvas.width = Math.round(w); canvas.height = Math.round(h);
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    try {
+      const result = reader.decodeFromCanvas(canvas);
+      if (result) return result.getText();
+    } catch { /* not found at this scale — try the next */ }
+  }
+  return null;
+}
+
+function stillHints() {
+  const hints = new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.DATA_MATRIX,
+    ZXing.BarcodeFormat.UPC_A,
+    ZXing.BarcodeFormat.EAN_13,
+    ZXing.BarcodeFormat.CODE_128
+  ]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);   // slower, thorough — fine for a one-shot still
+  return hints;
+}
 
 /* ============ MANUAL ENTRY ============ */
 document.getElementById("manualGo").onclick = async () => {
