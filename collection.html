@@ -191,6 +191,12 @@
     .grid .heroinfo .finfo .tc{font-size:.4rem}
     .grid .heroinfo .fterps{font-size:.36rem;line-height:1.25;margin-top:1px}
   }
+  .plate .txt .pts{
+    font-family:'Oswald',sans-serif;font-weight:500;font-size:.46rem;
+    letter-spacing:.1em;text-transform:uppercase;color:#8B959F;margin-top:3px;
+  }
+  @media(min-width:680px){.plate .txt .pts{font-size:.52rem}}
+  #viewer .plate .txt .pts{font-size:.6rem;margin-top:4px}
   .plate .txt .pos{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.4rem;
     letter-spacing:.12em;text-transform:uppercase;color:var(--deep);margin-top:2px;
@@ -2000,19 +2006,18 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
           <div class="hero">
             <div class="mark">
               ${logoImg}
-              ${p.size ? `<div class="sz">${esc(p.category || "")}${p.size ? " · " + esc(p.size) : ""}</div>` : ""}
             </div>
           </div>
           <div class="heroinfo">
             <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span></div>
             ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
           </div>
-          ${blurb ? `<div class="blurb">${esc(blurb)}</div>` : ""}
           <div class="plate">
             <div class="burst"></div>
             <div class="txt">
               <div class="nm">${esc(p.name || "Unknown")}</div>
               <div class="pos">${esc(sp)}</div>
+              ${(p.category || p.size) ? `<div class="pts">${esc([p.category, p.size].filter(Boolean).join(" · "))}</div>` : ""}
             </div>
           </div>
           <div class="rating" data-gtin="${esc(scan.gtin || "")}">
