@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
   :root{
     --green:#31AA64;
@@ -147,7 +148,7 @@
   </div>
 
   <button class="btn" id="startBtn">Start scanning</button>
-  <button class="btn btn-alt" id="photoBtn">Trouble scanning? Take a photo</button>
+  <button class="btn btn-alt" id="photoBtn">Barcode not scanning? Photograph the label</button>
   <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
   <p id="scanHint">Point your camera at the barcode on the package label.</p>
   <p class="status" id="status"></p>
@@ -420,11 +421,12 @@ startBtn.onclick = async () => {
 };
 
 
-/* ============ PHOTO DECODE (fallback for barcodes that won't live-scan) ============
-   A still photo is full-resolution and sharp — the same decoder that fails on
-   shaky, autofocus-hunting video frames often succeeds on a crisp still. Runs
-   entirely on-device; no network, no cost. We try the image at full size, and
-   if that fails, upscaled, since small/worn codes decode better enlarged. */
+/* ============ PHOTO -> OCR (read the printed GS1 number) ============
+   Curved/worn barcodes defeat every barcode decoder — the bars distort around
+   the tube. But the GS1 string is ALSO printed as plain text under the barcode
+   ("(01)00840773001527(13)240604(10)..."), and that text stays readable. So we
+   photograph the label and OCR that line, then parse it exactly like a scan.
+   Runs on-device via Tesseract.js — no server, no API cost. */
 const photoBtn = document.getElementById("photoBtn");
 const photoInput = document.getElementById("photoInput");
 
@@ -432,25 +434,26 @@ photoBtn.onclick = () => photoInput.click();
 
 photoInput.onchange = async () => {
   const file = photoInput.files && photoInput.files[0];
-  photoInput.value = "";                      // allow re-picking the same file
+  photoInput.value = "";
   if (!file) return;
 
   running = false;
   stopStreams();
   startBtn.textContent = "Scan another";
   startBtn.classList.remove("hide");
-  setStatus("Reading photo…");
+  setStatus("Reading the label… this takes a few seconds.");
 
   try {
-    const bitmap = await loadImage(file);
-    const text = await decodeStill(bitmap);
-    if (text) {
-      await handleScan(parseScan(text));
+    const img = await loadImage(file);
+    const text = await ocrImage(img);
+    const parsed = parseFromText(text);
+    if (parsed && parsed.gtin) {
+      await handleScan(parsed);
     } else {
-      setStatus("Couldn't read a barcode in that photo. Try again with the code filling the frame, in good light — or enter it manually below.", true);
+      setStatus("Couldn't read the code from that photo. Get the printed number line — the (01)… under the barcode — sharp and level in the frame, or type it in below.", true);
     }
   } catch (e) {
-    setStatus("Couldn't process that photo (" + (e && e.name ? e.name : "error") + "). Try again, or enter the code manually.", true);
+    setStatus("Couldn't read that photo (" + (e && e.name ? e.name : "error") + "). Try again, or enter the code manually.", true);
   }
 };
 
@@ -463,40 +466,61 @@ function loadImage(file) {
   });
 }
 
-// draw the image (optionally scaled) to a canvas and hand it to ZXing
-async function decodeStill(img) {
-  const reader = new ZXing.BrowserMultiFormatReader(stillHints());
-  // try progressively larger renders — small/worn codes read better enlarged
-  const scales = [1, 1.6, 2.4];
-  for (const s of scales) {
-    const canvas = document.createElement("canvas");
-    // cap the long edge so huge phone photos don't blow past canvas limits
-    const maxEdge = 2600;
-    let w = img.naturalWidth * s, h = img.naturalHeight * s;
-    const longEdge = Math.max(w, h);
-    if (longEdge > maxEdge) { const k = maxEdge / longEdge; w *= k; h *= k; }
-    canvas.width = Math.round(w); canvas.height = Math.round(h);
-    const ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    try {
-      const result = reader.decodeFromCanvas(canvas);
-      if (result) return result.getText();
-    } catch { /* not found at this scale — try the next */ }
+// Preprocess for OCR: scale up, greyscale, boost contrast — printed GS1 text
+// is small, so enlarging + thresholding markedly improves the read.
+function prepCanvas(img) {
+  const canvas = document.createElement("canvas");
+  const maxEdge = 2000;
+  let w = img.naturalWidth, h = img.naturalHeight;
+  const scale = Math.min(2.2, (maxEdge / Math.max(w, h)) * 2.2);
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const px = d.data;
+  for (let i = 0; i < px.length; i += 4) {
+    let v = 0.299 * px[i] + 0.587 * px[i+1] + 0.114 * px[i+2];
+    v = v < 128 ? v * 0.6 : 128 + (v - 128) * 1.5;
+    v = Math.max(0, Math.min(255, v));
+    px[i] = px[i+1] = px[i+2] = v;
   }
-  return null;
+  ctx.putImageData(d, 0, 0);
+  return canvas;
 }
 
-function stillHints() {
-  const hints = new Map();
-  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-    ZXing.BarcodeFormat.DATA_MATRIX,
-    ZXing.BarcodeFormat.UPC_A,
-    ZXing.BarcodeFormat.EAN_13,
-    ZXing.BarcodeFormat.CODE_128
-  ]);
-  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);   // slower, thorough — fine for a one-shot still
-  return hints;
+async function ocrImage(img) {
+  const canvas = prepCanvas(img);
+  const { data } = await Tesseract.recognize(canvas, "eng", {
+    tessedit_char_whitelist: "0123456789()",
+  });
+  return (data && data.text) ? data.text : "";
+}
+
+// Pull a usable code out of OCR text. Prefer a full GS1 string; fall back to
+// the longest 12-14 digit run (a bare GTIN printed on its own).
+function parseFromText(text) {
+  if (!text) return null;
+  const flat = text.replace(/[^0-9()]/g, "");
+
+  let m = flat.match(/\(?01\)?(\d{14})(.*)$/);
+  if (m) {
+    const rebuilt = "01" + m[1] + m[2].replace(/[()]/g, "");
+    const out = parseScan(rebuilt);
+    if (out && out.gtin) {
+      // lot (10) has no trailing separator in OCR text, so parseScan can
+      // over-read it; take a bounded lot straight from the printed string
+      const lotM = text.match(/\(10\)\s*([0-9]{4,20})/);
+      if (lotM) out.lot = lotM[1];
+      return out;
+    }
+  }
+  const runs = flat.replace(/[()]/g, "").match(/\d{12,14}/g);
+  if (runs && runs.length) {
+    runs.sort((a, b) => b.length - a.length);
+    return { gtin: runs[0].replace(/^0+/, ""), lot: null, packaged: null };
+  }
+  return null;
 }
 
 /* ============ MANUAL ENTRY ============ */
