@@ -9,88 +9,137 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:transparent}
-  body{font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#1B2430}
-  .wrap{max-width:640px;margin:0 auto;padding:14px 14px 40px}
-
-  .head{margin-bottom:6px}
-  .head h1{font-family:'Playfair Display',serif;font-weight:800;font-size:1.25rem}
-  .head p{color:#75808C;font-size:.82rem;line-height:1.5;margin-top:3px}
-
-  .summary{
-    background:#F4F7F9;border-radius:12px;padding:12px 14px;margin:14px 0 20px;
-    font-size:.84rem;line-height:1.6;color:#3C4855;
+  :root{
+    --ink:#171C26;          /* near-black text, high contrast */
+    --ink-2:#3A424F;        /* secondary text, still dark */
+    --muted:#6A7280;        /* captions only */
+    --line:#E4E8EC;
+    --paper:#FFFFFF;
+    --shell:#F5F7F9;
+    --fav:#1F9D57;          /* deeper green than the bar green */
+    --fav-bg:#E7F6EE;
+    --avoid:#D14338;
+    --avoid-bg:#FBEAE8;
+    --gold:#E0A100;
+    --indica:#3E8FB5; --sativa:#C56A1E; --hybrid:#42815A;
   }
-  .summary b{color:#1B2430}
-  .summary .stat{
-    display:flex;gap:18px;margin-top:8px;padding-top:8px;border-top:1px solid #E2E8EC;
+  body{
+    font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    color:var(--ink);line-height:1.5;
   }
-  .summary .stat div{font-size:.72rem;color:#75808C}
-  .summary .stat b{display:block;font-family:'Oswald',sans-serif;font-size:1.05rem;color:#1B2430}
+  .wrap{max-width:660px;margin:0 auto;padding:18px 15px 48px}
 
-  .msg{text-align:center;color:#8B959F;font-size:.9rem;line-height:1.8;padding:44px 20px}
-  .msg b{color:#1B2430;display:block;margin-bottom:6px;font-size:1rem}
-
-  .section{margin-bottom:24px}
-  .section > h2{
-    font-family:'Oswald',sans-serif;font-weight:600;font-size:.76rem;
-    letter-spacing:.16em;text-transform:uppercase;margin-bottom:2px;
-    display:flex;align-items:center;gap:7px;
+  /* ── header ── */
+  .head{margin-bottom:16px}
+  .eyebrow{
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:.66rem;
+    letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
   }
-  .section > h2 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-  .section.fav > h2{color:#2E7D46}
-  .section.fav .dot{background:#2FB457}
-  .section.avoid > h2{color:#C4443A}
-  .section.avoid .dot{background:#E2574C}
-  .section > .sub{font-size:.72rem;color:#9AA3AC;margin-bottom:10px}
+  .head h1{
+    font-family:'Playfair Display',serif;font-weight:800;font-size:1.7rem;
+    color:var(--ink);line-height:1.05;margin-top:3px;letter-spacing:-.01em;
+  }
 
+  /* ── headline card: the thesis ── */
+  .thesis{
+    background:var(--ink);color:#fff;border-radius:16px;
+    padding:18px 18px 16px;margin:16px 0 22px;
+    box-shadow:0 12px 30px -14px rgba(23,28,38,.6);
+  }
+  .thesis .line{font-size:1rem;line-height:1.55;color:#EDEFF2;font-weight:500}
+  .thesis .line b{color:#fff;font-weight:700}
+  .thesis .stats{
+    display:flex;gap:0;margin-top:16px;padding-top:15px;
+    border-top:1px solid rgba(255,255,255,.14);
+  }
+  .thesis .stats div{flex:1;text-align:center;position:relative}
+  .thesis .stats div + div::before{
+    content:"";position:absolute;left:0;top:2px;bottom:2px;width:1px;
+    background:rgba(255,255,255,.14);
+  }
+  .thesis .stats .num{
+    font-family:'Playfair Display',serif;font-weight:800;font-size:1.5rem;color:#fff;line-height:1;
+  }
+  .thesis .stats .lbl{
+    font-family:'Oswald',sans-serif;font-size:.56rem;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(255,255,255,.6);margin-top:5px;
+  }
+
+  /* ── sections ── */
+  .section{margin-bottom:22px}
+  .section > .shead{display:flex;align-items:center;gap:9px;margin-bottom:3px}
+  .section > .shead .tag{
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:.7rem;
+    letter-spacing:.16em;text-transform:uppercase;padding:4px 9px;border-radius:6px;
+  }
+  .section.fav .tag{color:#0F6A38;background:var(--fav-bg)}
+  .section.avoid .tag{color:#9E2C23;background:var(--avoid-bg)}
+  .section > .shead .count{
+    font-family:'Oswald',sans-serif;font-size:.66rem;color:var(--muted);letter-spacing:.06em;
+  }
+  .section > .sub{font-size:.8rem;color:var(--ink-2);margin-bottom:11px}
+
+  /* ── terpene row as a card ── */
   .terp{
-    display:flex;align-items:center;gap:11px;padding:9px 0;
-    border-bottom:1px solid #EDF0F2;
+    display:flex;align-items:center;gap:12px;
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;margin-bottom:8px;
+    transition:transform .15s,box-shadow .15s;
   }
+  .terp:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(23,28,38,.28)}
   .terp .rank{
-    font-family:'Oswald',sans-serif;font-weight:700;font-size:.8rem;
-    color:#C4CBD2;width:20px;flex:0 0 auto;text-align:center;
+    font-family:'Playfair Display',serif;font-weight:800;font-size:1.15rem;
+    color:var(--ink);width:22px;flex:0 0 auto;text-align:center;opacity:.32;
   }
   .terp .body{flex:1;min-width:0}
   .terp .name{
-    font-family:'DM Sans',sans-serif;font-weight:700;font-size:.92rem;
-    display:flex;align-items:baseline;gap:7px;
+    font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;
+    color:var(--ink);display:flex;align-items:baseline;gap:8px;
   }
   .terp .name .aroma{
-    font-family:'Oswald',sans-serif;font-weight:500;font-size:.56rem;
-    letter-spacing:.1em;text-transform:uppercase;color:#9AA3AC;
+    font-family:'Oswald',sans-serif;font-weight:500;font-size:.58rem;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    padding:2px 7px;background:var(--shell);border-radius:20px;
   }
   .terp .meter{
-    position:relative;height:6px;border-radius:4px;background:#ECEEF0;
-    margin-top:5px;overflow:hidden;
+    position:relative;height:7px;border-radius:5px;background:#EEF1F3;
+    margin-top:8px;overflow:hidden;
   }
   .terp .meter::after{
-    content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(27,36,48,.12);
+    content:"";position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:rgba(23,28,38,.16);
   }
-  .terp .meter .fill{
-    position:absolute;top:0;bottom:0;border-radius:4px;transition:width .5s,left .5s;
+  .terp .meter .fill{position:absolute;top:0;bottom:0;border-radius:5px;transition:width .55s ease,left .55s ease}
+  .fav .terp .meter .fill{background:linear-gradient(90deg,#37B26E,var(--fav))}
+  .avoid .terp .meter .fill{background:linear-gradient(90deg,var(--avoid),#E86A60)}
+  .terp .side{flex:0 0 auto;text-align:right;min-width:70px}
+  .terp .side .stars{font-size:.88rem;letter-spacing:1px;line-height:1}
+  .terp .side .stars .on{color:var(--gold)}
+  .terp .side .stars .off{color:#D6DBE0}
+  .terp .side .n{
+    font-family:'Oswald',sans-serif;font-size:.6rem;color:var(--muted);
+    margin-top:4px;letter-spacing:.04em;
   }
-  .fav .terp .meter .fill{background:#2FB457}
-  .avoid .terp .meter .fill{background:#E2574C}
-  .terp .side{flex:0 0 auto;text-align:right;min-width:64px}
-  .terp .side .avg{
-    font-family:'Oswald',sans-serif;font-weight:700;font-size:.9rem;color:#1B2430;
-  }
-  .terp .side .avg .s{color:#F5B301;font-size:.8rem}
-  .terp .side .n{font-size:.6rem;color:#9AA3AC;margin-top:1px}
-  .terp .side .n.low{color:#D08A2E}
+  .terp .side .n.new{color:var(--sativa);font-weight:600}
 
+  /* ── empty / loading / legend ── */
+  .msg{text-align:center;color:var(--ink-2);font-size:.95rem;line-height:1.8;padding:52px 22px}
+  .msg b{color:var(--ink);display:block;margin-bottom:7px;font-size:1.05rem;font-family:'Playfair Display',serif}
   .legend{
-    font-size:.68rem;color:#9AA3AC;line-height:1.6;margin-top:6px;
-    padding-top:12px;border-top:1px solid #EDF0F2;
+    font-size:.74rem;color:var(--ink-2);line-height:1.7;margin-top:10px;
+    padding:14px 15px;background:var(--shell);border-radius:12px;
+  }
+  .legend b{color:var(--ink)}
+
+  @media (prefers-reduced-motion: reduce){
+    .terp,.terp .meter .fill{transition:none}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="head">
+    <div class="eyebrow">The Terpene Sommelier</div>
     <h1>Your Palate</h1>
-    <p>Built from the products you rate. The more you rate, the sharper it gets.</p>
   </div>
   <div id="out"><div class="msg">Reading your ratings…</div></div>
 </div>
@@ -200,25 +249,27 @@ function computePalate(scans, ratings) {
 }
 
 /* ── rendering ── */
-function starStr(avg) {
+function starEls(avg) {
   const full = Math.round(avg);
-  return "★".repeat(full) + "☆".repeat(5 - full);
+  let s = "";
+  for (let i = 1; i <= 5; i++) s += `<span class="${i <= full ? "on" : "off"}">\u2605</span>`;
+  return s;
 }
-function terpRow(t, rank, kind) {
-  // meter: map score -2..+2 to a bar growing from centre
-  const pct = Math.min(100, Math.abs(t.score) / 2 * 50);   // half-width max
+function terpRow(t, rank) {
+  const pct = Math.min(50, Math.abs(t.score) / 2 * 50);   // half-width max from centre
   const left = t.score >= 0 ? 50 : (50 - pct);
   const low = t.products < 2;
+  const aroma = AROMA_NOTE[t.terpene];
   return `
     <div class="terp">
       <span class="rank">${rank}</span>
       <div class="body">
-        <div class="name">${esc(t.terpene)}<span class="aroma">${esc(AROMA_NOTE[t.terpene] || "")}</span></div>
+        <div class="name">${esc(t.terpene)}${aroma ? `<span class="aroma">${esc(aroma)}</span>` : ""}</div>
         <div class="meter"><span class="fill" style="left:${left}%;width:${pct}%"></span></div>
       </div>
       <div class="side">
-        <div class="avg"><span class="s">${esc(starStr(t.avg))}</span></div>
-        <div class="n ${low ? "low" : ""}">${t.products} product${t.products === 1 ? "" : "s"}${low ? " · new" : ""}</div>
+        <div class="stars">${starEls(t.avg)}</div>
+        <div class="n ${low ? "new" : ""}">${t.products} product${t.products === 1 ? "" : "s"}${low ? " · new" : ""}</div>
       </div>
     </div>`;
 }
@@ -252,35 +303,35 @@ function render(data) {
   if (!head) head = "Keep rating — a few more and clear patterns will emerge.";
 
   out.innerHTML = `
-    <div class="summary">
-      ${head}
-      <div class="stat">
-        <div><b>${ratedCount}</b>rated</div>
-        <div><b>${terps.length}</b>terpenes seen</div>
-        <div><b>${favs.length}</b>favorites</div>
+    <div class="thesis">
+      <div class="line">${head}</div>
+      <div class="stats">
+        <div><div class="num">${ratedCount}</div><div class="lbl">Rated</div></div>
+        <div><div class="num">${terps.length}</div><div class="lbl">Terpenes</div></div>
+        <div><div class="num">${favs.length}</div><div class="lbl">Favorites</div></div>
       </div>
     </div>
 
     ${favs.length ? `
     <div class="section fav">
-      <h2><span class="dot"></span>Favorites</h2>
+      <div class="shead"><span class="tag">Favorites</span><span class="count">${favs.length}</span></div>
       <div class="sub">Terpenes in the products you rate highest.</div>
-      ${favs.map((t, i) => terpRow(t, i + 1, "fav")).join("")}
+      ${favs.map((t, i) => terpRow(t, i + 1)).join("")}
     </div>` : ""}
 
     ${avoid.length ? `
     <div class="section avoid">
-      <h2><span class="dot"></span>Tend to Avoid</h2>
+      <div class="shead"><span class="tag">Tend to Avoid</span><span class="count">${avoid.length}</span></div>
       <div class="sub">Terpenes in the products you rate lowest.</div>
-      ${avoid.map((t, i) => terpRow(t, i + 1, "avoid")).join("")}
+      ${avoid.map((t, i) => terpRow(t, i + 1)).join("")}
     </div>` : ""}
 
     <div class="legend">
       Scores weight each rating by the terpene percentages you enter on a card;
-      without percentages, a product's three terpenes count equally. Position on
-      the label (1st, 2nd, 3rd) is never used — it doesn't indicate dominance.
-      A terpene marked <b>new</b> is backed by a single product, so it will move
-      as you rate more.
+      without them, a product's three terpenes count equally. Label position
+      (1st, 2nd, 3rd) is never used — it doesn't indicate dominance. A terpene
+      marked <b>new</b> is backed by a single product, so it will move as you
+      rate more.
     </div>`;
 }
 
