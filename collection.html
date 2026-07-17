@@ -252,7 +252,7 @@
   /* rating (on the card front, below the nameplate) */
   .rating{
     background:#fff;padding:7px 10px 9px;
-    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
     border-top:1px solid #EDF0F2;
   }
   .rating .lbl{
@@ -1946,10 +1946,6 @@ function cardHTML(p, scan, idx) {
     return esc(t) + (pc != null ? " " + fmtPct(pc) : "");
   }).join(" \u00b7 ");
 
-  const crestImg = p.logo
-    ? `<img src="${esc(p.logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ini',textContent:${JSON.stringify(initials(p.brand))}}))">`
-    : `<span class="ini">${esc(initials(p.brand))}</span>`;
-
   const axis = (key, label, val, desc) => `
         <div class="m" data-axis="${key}">
           <div class="hd"><span class="k">${label}</span><span class="v">${val > 0 ? "+" : ""}${val}</span></div>
@@ -2014,14 +2010,12 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
           ${blurb ? `<div class="blurb">${esc(blurb)}</div>` : ""}
           <div class="plate">
             <div class="burst"></div>
-            <div class="crest">${crestImg}</div>
             <div class="txt">
               <div class="nm">${esc(p.name || "Unknown")}</div>
               <div class="pos">${esc(sp)}</div>
             </div>
           </div>
           <div class="rating" data-gtin="${esc(scan.gtin || "")}">
-            <span class="lbl">Your Rating</span>
             <span class="stars" role="radiogroup" aria-label="Rate 1 to 5 stars">
               ${[1,2,3,4,5].map(n => `<span class="star" data-v="${n}" role="radio" tabindex="0" aria-label="${n} star">★</span>`).join("")}
             </span>
