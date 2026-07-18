@@ -450,7 +450,8 @@ photoInput.onchange = async () => {
     if (parsed && parsed.gtin) {
       await handleScan(parsed);
     } else {
-      setStatus("Couldn't read the code from that photo. Get the printed number line — the (01)… under the barcode — sharp and level in the frame, or type it in below.", true);
+      const seen = (text || "").replace(/\s+/g, " ").trim().slice(0, 120);
+      setStatus("Couldn't find a product code. OCR read: \u201c" + (seen || "nothing") + "\u201d. Photograph just the (01)\u2026 number line, filling the frame, or type it below.", true);
     }
   } catch (e) {
     setStatus("Couldn't read that photo (" + (e && e.name ? e.name : "error") + "). Try again, or enter the code manually.", true);
@@ -468,61 +469,99 @@ function loadImage(file) {
 
 // Preprocess for OCR: scale up, greyscale, boost contrast — printed GS1 text
 // is small, so enlarging + thresholding markedly improves the read.
-function prepCanvas(img) {
+// Render the photo to a target width (upscale small, downscale huge) and
+// return a canvas. mode: "grey" (contrast-stretched greyscale) or "bw"
+// (hard binarized) — different labels read better under different modes.
+function renderCanvas(img, mode) {
+  const target = 1600;                       // sweet spot for printed GS1 text
+  const srcW = img.naturalWidth, srcH = img.naturalHeight;
+  const scale = target / srcW;               // normalize by width
   const canvas = document.createElement("canvas");
-  const maxEdge = 2000;
-  let w = img.naturalWidth, h = img.naturalHeight;
-  const scale = Math.min(2.2, (maxEdge / Math.max(w, h)) * 2.2);
-  canvas.width = Math.round(w * scale);
-  canvas.height = Math.round(h * scale);
+  canvas.width = Math.round(srcW * scale);
+  canvas.height = Math.round(srcH * scale);
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
   const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const px = d.data;
-  for (let i = 0; i < px.length; i += 4) {
-    let v = 0.299 * px[i] + 0.587 * px[i+1] + 0.114 * px[i+2];
-    v = v < 128 ? v * 0.6 : 128 + (v - 128) * 1.5;
-    v = Math.max(0, Math.min(255, v));
+  // first pass: luminance + find mean for adaptive threshold
+  let sum = 0;
+  const lum = new Float32Array(px.length / 4);
+  for (let i = 0, j = 0; i < px.length; i += 4, j++) {
+    const v = 0.299 * px[i] + 0.587 * px[i+1] + 0.114 * px[i+2];
+    lum[j] = v; sum += v;
+  }
+  const mean = sum / lum.length;
+  for (let i = 0, j = 0; i < px.length; i += 4, j++) {
+    let v = lum[j];
+    if (mode === "bw") {
+      v = v < mean - 6 ? 0 : 255;            // hard black/white around the mean
+    } else {
+      // stretch contrast around the mean
+      v = v < mean ? Math.max(0, v * 0.55) : Math.min(255, 128 + (v - 128) * 1.6);
+    }
     px[i] = px[i+1] = px[i+2] = v;
   }
   ctx.putImageData(d, 0, 0);
   return canvas;
 }
 
-async function ocrImage(img) {
-  const canvas = prepCanvas(img);
+async function ocrCanvas(canvas) {
   const { data } = await Tesseract.recognize(canvas, "eng", {
-    tessedit_char_whitelist: "0123456789()",
+    tessedit_pageseg_mode: "6",              // assume a uniform block of text
+    // no char whitelist — Tesseract 5 reads digits better with full model
   });
   return (data && data.text) ? data.text : "";
+}
+
+// Try a few renderings; return the first whose text yields a GTIN, else the
+// longest raw text (so the caller can show it for debugging).
+async function ocrImage(img) {
+  const modes = ["grey", "bw"];
+  let best = "";
+  for (const mode of modes) {
+    const canvas = renderCanvas(img, mode);
+    const text = await ocrCanvas(canvas);
+    if (text && text.length > best.length) best = text;
+    if (parseFromText(text) && parseFromText(text).gtin) return text;  // early win
+  }
+  return best;
 }
 
 // Pull a usable code out of OCR text. Prefer a full GS1 string; fall back to
 // the longest 12-14 digit run (a bare GTIN printed on its own).
 function parseFromText(text) {
   if (!text) return null;
-  const flat = text.replace(/[^0-9()]/g, "");
 
-  let m = flat.match(/\(?01\)?(\d{14})(.*)$/);
+  // Strategy: the (01) application identifier immediately precedes the
+  // 14-digit GTIN. We look for it a few ways, most-reliable first.
+  const raw = String(text);
+
+  // A) explicit "(01)" or "01" followed by 14 digits, tolerating spaces
+  //    Prefer a parenthesised (01) since that's unambiguous.
+  let m = raw.replace(/\s+/g, "").match(/\(01\)(\d{14})/)      // (01)XXXXXXXXXXXXXX
+         || raw.replace(/\s+/g, "").match(/(?:^|[^\d])01(\d{14})(?:\D|$)/); // 01XXXXXXXXXXXXXX at a boundary
   if (m) {
-    const rebuilt = "01" + m[1] + m[2].replace(/[()]/g, "");
-    const out = parseScan(rebuilt);
-    if (out && out.gtin) {
-      // lot (10) has no trailing separator in OCR text, so parseScan can
-      // over-read it; take a bounded lot straight from the printed string
-      const lotM = text.match(/\(10\)\s*([0-9]{4,20})/);
+    const gtin = m[1].replace(/^0+/, "");
+    if (gtin.length >= 12) {
+      const out = { gtin, lot: null, packaged: null };
+      const lotM = raw.match(/\(?10\)?\s*([0-9]{4,20})/);
       if (lotM) out.lot = lotM[1];
+      const pkg = raw.replace(/\s+/g, "").match(/\(13\)(\d{6})/);
+      if (pkg) out.packaged = "20" + pkg[1].slice(0,2) + "-" + pkg[1].slice(2,4) + "-" + pkg[1].slice(4,6);
       return out;
     }
   }
-  const runs = flat.replace(/[()]/g, "").match(/\d{12,14}/g);
-  if (runs && runs.length) {
+
+  // B) fall back to the longest standalone 12-14 digit run (a bare GTIN)
+  const digitsOnly = raw.replace(/[^0-9\s]/g, " ");
+  const runs = (digitsOnly.match(/\d{12,14}/g) || []).slice();
+  if (runs.length) {
     runs.sort((a, b) => b.length - a.length);
     return { gtin: runs[0].replace(/^0+/, ""), lot: null, packaged: null };
   }
   return null;
 }
-
 /* ============ MANUAL ENTRY ============ */
 document.getElementById("manualGo").onclick = async () => {
   const gtin = (document.getElementById("inGtin").value || "").replace(/\D/g, "").replace(/^0+/, "");
