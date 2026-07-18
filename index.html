@@ -26,7 +26,7 @@
     font-family:'DM Sans',system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:480px;margin:0 auto;padding:8px 12px 96px}
+  .wrap{max-width:480px;margin:0 auto;padding:8px 12px 200px}
 
   /* ---------- scanner ---------- */
   .scan-frame{position:relative;border-radius:var(--radius);overflow:hidden;background:#000}
@@ -247,7 +247,7 @@ function parseScan(raw) {
   const out = { gtin: null, lot: null, packaged: null };
   let s = String(raw).replace(/[()]/g, "");
   if (/^\d{8,14}$/.test(s)) { out.gtin = s.replace(/^0+/, ""); return out; }
-  const gs = "\u001d";
+  const gs = "";
   let i = 0;
   while (i < s.length - 1) {
     const ai = s.slice(i, i + 2);
@@ -280,9 +280,18 @@ async function lookup(gtin) {
   } catch { return null; }
 }
 
+/* ============ DID THE LOOKUP RETURN A REAL PRODUCT? ============
+   A found product always carries a name. Anything without one is an
+   "unknown" — we never log it, so it never becomes a card in the
+   collection. This is the single gate that keeps Unknown cards out. */
+function isRealProduct(p) {
+  return !!(p && p.name && String(p.name).trim());
+}
+
 /* ============ LOG THE SCAN (to Google Sheet via Apps Script) ============ */
 async function logScan(scan, p) {
   if (!WRITE_URL) return;                 // not configured yet — skip quietly
+  if (!isRealProduct(p)) return;          // never log unknown products
   try {
     await fetch(WRITE_URL, {
       method: "POST",
@@ -314,10 +323,11 @@ async function logScan(scan, p) {
 /* ============ CARD RENDER ============ */
 const cardHolder = document.getElementById("cardHolder");
 function renderCard(p, scan) {
-  if (!p) {
+  if (!isRealProduct(p)) {
     cardHolder.innerHTML =
       "<div class='notfound'>We couldn't find that product.<br>" +
       "Code: <b>" + (scan.gtin || "—") + "</b><br>" +
+      "This code isn't in the catalog yet, so nothing was added to your collection.<br>" +
       "Try re-scanning, or check the code you typed.</div>";
     return;
   }
@@ -353,7 +363,7 @@ async function handleScan(scan) {
   setStatus("Looking up " + scan.gtin + "…");
   const p = await lookup(scan.gtin);
   renderCard(p, scan);
-  logScan(scan, p);
+  if (isRealProduct(p)) logScan(scan, p);   // only real products are added to the collection
   setStatus("", false);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -483,7 +493,7 @@ photoInput.onchange = async () => {
       await handleScan(parsed);
     } else {
       const seen = (text || "").replace(/\s+/g, " ").trim().slice(0, 120);
-      setStatus("Couldn't find a product code. OCR read: \u201c" + (seen || "nothing") + "\u201d. Photograph just the (01)\u2026 number line, filling the frame, or type it below.", true);
+      setStatus("Couldn't find a product code. OCR read: “" + (seen || "nothing") + "”. Photograph just the (01)… number line, filling the frame, or type it below.", true);
     }
   } catch (e) {
     showOcrOverlay(false);
