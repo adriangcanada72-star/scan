@@ -20,12 +20,13 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:transparent}
+  html,body{height:auto;min-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
   body{
     color:var(--ink);
     font-family:'DM Sans',system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:480px;margin:0 auto;padding:8px 12px 24px}
+  .wrap{max-width:480px;margin:0 auto;padding:8px 12px 96px}
 
   /* ---------- scanner ---------- */
   .scan-frame{position:relative;border-radius:var(--radius);overflow:hidden;background:#000}
@@ -132,9 +133,39 @@
     margin-top:8px;
   }
   .btn-alt:active{background:rgba(49,170,100,.08)}
+  /* full-screen reading overlay — big, bright, unmissable */
+  #ocrOverlay{
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(12,16,20,.86);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;
+  }
+  #ocrOverlay[hidden]{display:none}
+  .ocr-card{
+    background:#fff;border-radius:18px;padding:30px 34px;text-align:center;
+    box-shadow:0 24px 60px -18px rgba(0,0,0,.6);max-width:280px;
+    animation:ocrPop .2s ease;
+  }
+  @keyframes ocrPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .ocr-spinner{
+    width:56px;height:56px;margin:0 auto 18px;border-radius:50%;
+    border:5px solid #E4E8EC;border-top-color:#31AA64;
+    animation:ocrSpin .8s linear infinite;
+  }
+  @keyframes ocrSpin{to{transform:rotate(360deg)}}
+  .ocr-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.15rem;color:#171C26}
+  .ocr-sub{font-size:.9rem;color:#6A7280;margin-top:5px}
 </style>
 </head>
 <body>
+
+<div id="ocrOverlay" hidden>
+  <div class="ocr-card">
+    <div class="ocr-spinner"></div>
+    <div class="ocr-title">Reading the label…</div>
+    <div class="ocr-sub">Hold on a few seconds</div>
+  </div>
+</div>
+
 
 <div class="wrap">
 
@@ -441,12 +472,13 @@ photoInput.onchange = async () => {
   stopStreams();
   startBtn.textContent = "Scan another";
   startBtn.classList.remove("hide");
-  setStatus("Reading the label… this takes a few seconds.");
+  showOcrOverlay(true);
 
   try {
     const img = await loadImage(file);
     const text = await ocrImage(img);
     const parsed = parseFromText(text);
+    showOcrOverlay(false);
     if (parsed && parsed.gtin) {
       await handleScan(parsed);
     } else {
@@ -454,9 +486,15 @@ photoInput.onchange = async () => {
       setStatus("Couldn't find a product code. OCR read: \u201c" + (seen || "nothing") + "\u201d. Photograph just the (01)\u2026 number line, filling the frame, or type it below.", true);
     }
   } catch (e) {
+    showOcrOverlay(false);
     setStatus("Couldn't read that photo (" + (e && e.name ? e.name : "error") + "). Try again, or enter the code manually.", true);
   }
 };
+
+function showOcrOverlay(on) {
+  const el = document.getElementById("ocrOverlay");
+  if (el) el.hidden = !on;
+}
 
 function loadImage(file) {
   return new Promise((resolve, reject) => {
