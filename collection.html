@@ -2522,5 +2522,104 @@ async function load() {
 
 load();
 </script>
+<!-- ===== DELETE A CARD (added feature) =====
+     Adds a Delete button to the open card viewer. Confirms, tells the
+     Google Sheet to drop this user+product (via the Apps Script "delete"
+     route), then removes the card from the grid and closes the viewer.
+     Self-contained: uses only existing IDs/classes in this page. -->
+<script>
+(function () {
+  var WRITE_URL  = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-Y2Eq6uBRqxN4Dl1Trcmg6otbfv9pPkm8ZnEBHDjxzXSt4/exec";
+  var USER_EMAIL = new URLSearchParams(location.search).get("user") || "";
+
+  var viewer = document.getElementById("viewer");
+  var vstage = document.getElementById("vstage");
+  if (!viewer || !vstage) return;
+
+  /* Delete button — pinned to the bottom of the viewer while a card is open. */
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.id = "vdelete";
+  btn.textContent = "Delete this card";
+  var css = {
+    position: "fixed", left: "50%", bottom: "22px", transform: "translateX(-50%)",
+    display: "none", padding: "12px 22px",
+    background: "#fff", color: "#C0392B",
+    border: "1.5px solid #E4B4AE", borderRadius: "12px",
+    fontFamily: "'DM Sans',system-ui,sans-serif", fontWeight: "700",
+    fontSize: ".95rem", cursor: "pointer", zIndex: "10",
+    boxShadow: "0 8px 24px -8px rgba(0,0,0,.35)", WebkitTapHighlightColor: "transparent"
+  };
+  for (var k in css) btn.style[k] = css[k];
+  viewer.appendChild(btn);
+
+  function currentGtin() {
+    var r = vstage.querySelector(".rating[data-gtin]");
+    return r ? r.dataset.gtin : "";
+  }
+  function reset() {
+    btn.disabled = false;
+    btn.textContent = "Delete this card";
+  }
+  function sync() {
+    var open = viewer.classList.contains("open");
+    btn.style.display = (open && currentGtin()) ? "block" : "none";
+    reset();
+  }
+  new MutationObserver(sync).observe(viewer, { attributes: true, attributeFilter: ["class"] });
+  new MutationObserver(sync).observe(vstage, { childList: true });
+  sync();
+
+  function esc(g) {
+    return (window.CSS && CSS.escape) ? CSS.escape(g) : String(g).replace(/["\\]/g, "\\$&");
+  }
+  function updateCount() {
+    var countEl = document.getElementById("count");
+    var n = document.querySelectorAll(".grid .scene").length;
+    if (countEl) countEl.textContent = n + (n === 1 ? " card" : " cards");
+    if (n === 0) {
+      var out = document.getElementById("out");
+      if (out) out.innerHTML = '<div class="msg"><b>Your collection is empty</b>Scan a product’s barcode to add your first card.</div>';
+      var hint = document.getElementById("hint");
+      if (hint) hint.textContent = "";
+    }
+  }
+  function closeIt() {
+    if (typeof closeViewer === "function") { try { closeViewer(); return; } catch (e) {} }
+    viewer.classList.remove("open");
+    viewer.setAttribute("aria-hidden", "true");
+    vstage.innerHTML = "";
+    document.body.style.overflow = "";
+  }
+
+  btn.addEventListener("click", function () {
+    var gtin = currentGtin();
+    if (!gtin) return;
+    if (!confirm("Delete this card from your collection? This cannot be undone.")) return;
+    btn.disabled = true;
+    btn.textContent = "Deleting…";
+
+    /* Tell the sheet to drop this user+product. no-cors = fire-and-forget. */
+    try {
+      fetch(WRITE_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ type: "delete", user: USER_EMAIL, gtin: gtin, at: new Date().toISOString() })
+      });
+    } catch (e) {}
+
+    /* Update the UI immediately so it feels instant. */
+    var scene = document.querySelector('.grid .scene[data-gtin="' + esc(gtin) + '"]');
+    if (scene) scene.remove();
+    try { if (typeof PRODUCTS !== "undefined") delete PRODUCTS[gtin]; } catch (e) {}
+    try { if (typeof RATINGS  !== "undefined") delete RATINGS[gtin]; } catch (e) {}
+
+    closeIt();
+    updateCount();
+    reset();
+  });
+})();
+</script>
 </body>
 </html>
