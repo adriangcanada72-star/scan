@@ -513,7 +513,7 @@
   .sativa{--border:#F58A34;--deep:#B85F16;--c-thc:#F7A45D;--c-cbd:#F8B670}
   .hybrid{--border:#5AA06E;--deep:#33704A;--c-thc:#7CB88F;--c-cbd:#9DCBAA}
 
-  /* ── bigger fonts on the OPEN card front (viewer) ── */
+  /* -- bigger fonts on the OPEN card front (viewer) -- */
   #viewer .plate .txt .nm{font-size:1.7rem;line-height:1.08}
   #viewer .plate .txt .pos{font-size:1rem;letter-spacing:.14em}
   #viewer .plate .txt .pts{font-size:.9rem;margin-top:5px}
@@ -1930,8 +1930,27 @@ function cardHTML(p, scan, idx) {
   const cls = speciesClass(p);
   const sp = speciesName(p);
   const terps = (p.terpenes || []).slice(0, 3);
-  const tri = p.triax || {};
-  const hasTriax = tri.cerebral !== undefined && tri.cerebral !== null;
+  let tri = p.triax || {};
+  let hasTriax = tri.cerebral !== undefined && tri.cerebral !== null;
+  // Fallback: if the catalog did not supply TRIAX, compute it on-device from the
+  // terpene names using the built-in engine (equal-weighted, neutral label).
+  if (!hasTriax && terps.length && typeof ENGINE !== "undefined") {
+    try {
+      const rt = terps.map(resolveTerp);
+      const rr = ENGINE.calculate({
+        t1: rt[0] || "(none)", p1: 0,
+        t2: rt[1] || "(none)", p2: 0,
+        t3: rt[2] || "(none)", p3: 0,
+        thc: midpoint(p.thc), cbd: 0, totalTerp: 1.5, species: sp
+      });
+      tri = {
+        cerebral: rr.cerFinal, somatic: rr.somFinal, overall: rr.overallFinal,
+        cerebral_desc: rr.cerLabel, somatic_desc: rr.somLabel, overall_desc: rr.overallLabel,
+        leaning: leanLabel(rr.overallFinal)
+      };
+      hasTriax = true;
+    } catch (e) {}
+  }
 
   // the user's saved label for this product (rating + entered percentages)
   const savedPref = (typeof labelOf === "function") ? labelOf(scan && scan.gtin) : {};
