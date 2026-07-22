@@ -521,6 +521,9 @@
   #viewer .heroinfo .fterps{font-size:.9rem;margin-top:5px}
   #viewer .rating .star{font-size:2rem}
   #viewer .cardno{font-size:.8rem}
+
+  .triax-noterp{font-size:.56rem;line-height:1.45;color:#5B6470;background:#F3F5F7;border-radius:8px;padding:7px 9px;margin-top:8px}
+  #viewer .triax-noterp{font-size:.62rem;padding:9px 11px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -2298,13 +2301,18 @@ function cardHTML(p, scan, idx) {
   const cls = speciesClass(p);
   const sp = speciesName(p);
   const terps = (p.terpenes || []).slice(0, 3);
+  // About a quarter of the BCLDB catalog publishes no terpene profile at all.
+  // Those products get three blank, editable slots so a customer can enter the
+  // terpenes printed on their package - TRIAX then calculates from that input.
+  const noTerps = terps.length === 0;
+  const terpSlots = noTerps ? ["(none)", "(none)", "(none)"] : terps;
   let tri = p.triax || {};
   let hasTriax = tri.cerebral !== undefined && tri.cerebral !== null;
   // Fallback: if the catalog did not supply TRIAX, compute it on-device from the
   // terpene names using the built-in engine (equal-weighted, neutral label).
-  if (!hasTriax && terps.length && typeof ENGINE !== "undefined") {
+  if (!hasTriax && typeof ENGINE !== "undefined") {
     try {
-      const rt = terps.map(resolveTerp);
+      const rt = terpSlots.map(resolveTerp);
       const rr = ENGINE.calculate({
         t1: rt[0] || "(none)", p1: 0,
         t2: rt[1] || "(none)", p2: 0,
@@ -2357,7 +2365,7 @@ function cardHTML(p, scan, idx) {
         </div>`;
 
   const triaxBlock = hasTriax ? `
-      <div class="h3">TRIAX Profile <em class="lean">${esc(tri.leaning || leanLabel(tri.overall))}</em></div>
+      <div class="h3">TRIAX Profile <em class="lean">${noTerps ? "Add terpenes to rate" : esc(tri.leaning || leanLabel(tri.overall))}</em></div>
       <div class="triax">
 ${axis("cer",  "Cerebral", tri.cerebral, tri.cerebral_desc)}
 ${axis("som",  "Somatic",  tri.somatic,  tri.somatic_desc)}
@@ -2367,7 +2375,8 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
           <span><i style="background:#2FB457"></i>Hybrid</span>
           <span><i style="background:#F58A34"></i>Sativa</span>
         </div>
-        <button class="triax-toggle" type="button">Enter your label →</button>
+        ${noTerps ? `<div class="triax-noterp">No terpene profile is published for this product. Add the terpenes listed on your package below and the TRIAX rating will calculate.</div>` : ``}
+        <button class="triax-toggle" type="button">${noTerps ? "Add terpenes →" : "Enter your label →"}</button>
         <div class="triax-editbar">
           <label>THC % <input type="number" class="in-thc" step="0.1" min="0" max="100" placeholder="${Math.round(midpoint(p.thc))}"></label>
           <label>CBD % <input type="number" class="in-cbd" step="0.1" min="0" max="100" placeholder="0"></label>
@@ -2380,18 +2389,19 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
         <div class="triax-badge">✓ Recalculated from your label</div>
       </div>` : "";
 
-  const terpRows = terps.length ? terps.map((t, i) => {
+  const terpRows = terpSlots.map((t, i) => {
     const r = resolveTerp(t);
     const pc = savedTerpPct[i];
-    const nameWithPct = esc(t) + (pc != null ? " " + fmtPct(pc) : "");
+    const blank = noTerps && r === "(none)";
+    const nameWithPct = blank ? "Tap to add" : esc(t) + (pc != null ? " " + fmtPct(pc) : "");
     return `      <div class="tr" data-terp="${esc(r)}">
         <span class="r">${i + 1}</span>
-        <span class="t">${nameWithPct}</span>
+        <span class="t"${blank ? ` style="color:#9AA3AC;font-weight:400"` : ``}>${nameWithPct}</span>
         <select class="tn"></select>
         <span class="x">${esc(AROMA_NOTE[r] || "")}</span>
         <input class="tp" type="number" step="0.01" min="0" placeholder="%">
       </div>`;
-  }).join("\n") : `      <div class="tr"><span class="t" style="color:#9AA3AC;font-weight:400">Not listed</span></div>`;
+  }).join("\n");
 
   return `
   <div class="scene ${cls}">
@@ -2532,6 +2542,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
 
   rows.forEach((row, i) => {
     const sel = row.querySelector(".tn");
+    sel.add(new Option("— select terpene —", "(none)"));
     TERP_LIST.forEach(n => sel.add(new Option(n, n)));
     sel.value = base.terps[i].resolved;
   });
