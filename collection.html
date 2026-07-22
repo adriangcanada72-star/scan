@@ -2301,9 +2301,9 @@ function cardHTML(p, scan, idx) {
   const cls = speciesClass(p);
   const sp = speciesName(p);
   const terps = (p.terpenes || []).slice(0, 3);
-  // About a quarter of the BCLDB catalog publishes no terpene profile at all.
-  // Those products get three blank, editable slots so a customer can enter the
-  // terpenes printed on their package - TRIAX then calculates from that input.
+  // About a quarter of the BCLDB catalog publishes no terpene profile. Those get
+  // three blank editable slots so a customer can enter what is on the package -
+  // TRIAX then calculates from that input.
   const noTerps = terps.length === 0;
   const terpSlots = noTerps ? ["(none)", "(none)", "(none)"] : terps;
   let tri = p.triax || {};
@@ -2366,7 +2366,7 @@ function cardHTML(p, scan, idx) {
 
   const triaxBlock = hasTriax ? `
       <div class="h3">TRIAX Profile <em class="lean">${noTerps ? "Add terpenes to rate" : esc(tri.leaning || leanLabel(tri.overall))}</em></div>
-      <div class="triax">
+      <div class="triax"${noTerps ? ` data-noterps="1"` : ``}>
 ${axis("cer",  "Cerebral", tri.cerebral, tri.cerebral_desc)}
 ${axis("som",  "Somatic",  tri.somatic,  tri.somatic_desc)}
 ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
@@ -2375,7 +2375,7 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
           <span><i style="background:#2FB457"></i>Hybrid</span>
           <span><i style="background:#F58A34"></i>Sativa</span>
         </div>
-        ${noTerps ? `<div class="triax-noterp">No terpene profile is published for this product. Add the terpenes listed on your package below and the TRIAX rating will calculate.</div>` : ``}
+        ${noTerps ? `<div class="triax-noterp">No terpene profile is published for this product. Pick the terpenes listed on your package and the TRIAX rating will calculate.</div>` : ``}
         <button class="triax-toggle" type="button">${noTerps ? "Add terpenes →" : "Enter your label →"}</button>
         <div class="triax-editbar">
           <label>THC % <input type="number" class="in-thc" step="0.1" min="0" max="100" placeholder="${Math.round(midpoint(p.thc))}"></label>
@@ -2465,7 +2465,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
   const sheet = scene.querySelector(".sheet");
 
   // flip — but never when the tap lands on a control
-  const isCtrl = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions,.rating");
+  const isCtrl = e => e.target.closest("select,input,button,.tr,.triax,.triax-editbar,.triax-actions,.rating");
   if (flippable) {
     card.addEventListener("click", e => {
       if (isCtrl(e)) return;
@@ -2546,6 +2546,13 @@ function wireCard(scene, p, {flippable = true} = {}) {
     TERP_LIST.forEach(n => sel.add(new Option(n, n)));
     sel.value = base.terps[i].resolved;
   });
+
+  // No published profile means there is nothing to read - open straight into edit
+  // mode so the three dropdowns are visible instead of a dead "Tap to add" line.
+  if (triax.dataset.noterps === "1") {
+    sheet.classList.add("editing");
+    if (toggle) toggle.style.display = "none";
+  }
 
   const applyAxis = (a, score, desc) => {
     const m = triax.querySelector(`.m[data-axis="${a}"]`);
@@ -2779,7 +2786,7 @@ const midY = () => {
   const v = [...pts.values()];
   return v.length === 2 ? (v[0].y + v[1].y) / 2 : 0;
 };
-const isCtrlTarget = e => e.target.closest("select,input,button,.triax-editbar,.triax-actions");
+const isCtrlTarget = e => e.target.closest("select,input,button,.tr,.triax,.triax-editbar,.triax-actions");
 
 function setZoom(z) {
   zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
