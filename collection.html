@@ -485,7 +485,8 @@
 
   /* ── phone thumbnail: logo + product name only, logo enlarged ── */
   @media(max-width:679px){
-    .grid .stage .canna{display:none}          /* no THC/CBD */
+    .grid .stage .canna{display:grid;padding:0 7px;margin:4px 0 5px}   /* show THC/CBD bubbles */
+    .grid .canna .b{padding:5px 6px}
     .grid .blurb{display:none}                 /* no tasting note */
     .grid .plate .crest{display:none}          /* no logo circle by the name */
     .grid .plate{gap:0;justify-content:center;text-align:center;padding:5px 5px 6px}
