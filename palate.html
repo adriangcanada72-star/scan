@@ -10,157 +10,100 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:transparent}
   :root{
-    --ink:#171C26;
-    --ink-2:#3A424F;
-    --muted:#6A7280;
-    --line:#E4E8EC;
-    --paper:#FFFFFF;
-    --shell:#F5F7F9;
-    --teal:#4AABBF;
-    --teal-deep:#3A96A8;
-    --green:#31AA64;
-    --fav:#1F9D57;
-    --fav-bg:#E7F6EE;
-    --avoid:#D14338;
-    --avoid-bg:#FBEAE8;
-    --gold:#E0A100;
-    --indica:#74C6EA; --sativa:#F58A34; --hybrid:#5AA06E;
+    --ink:#171C26; --ink-2:#3A424F; --muted:#6A7280; --line:#E4E8EC;
+    --paper:#FFFFFF; --shell:#F5F7F9;
+    --teal:#4AABBF; --teal-deep:#3A96A8; --green:#31AA64;
+    --fav:#1F9D57; --fav-bg:#E7F6EE; --avoid:#D14338; --avoid-bg:#FBEAE8;
+    --gold:#E0A100; --indica:#74C6EA; --sativa:#F58A34; --hybrid:#5AA06E;
   }
-  body{
-    font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
-    color:var(--ink);line-height:1.5;
-  }
+  body{font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);line-height:1.5}
   .wrap{max-width:660px;margin:0 auto;padding:16px 15px 48px}
 
   /* ── HERO ── */
   .hero{
     position:relative;overflow:hidden;border-radius:20px;
-    padding:24px 22px 22px;margin-bottom:16px;color:#fff;text-align:center;
+    padding:22px 22px 20px;margin-bottom:16px;color:#fff;text-align:center;
     background:linear-gradient(135deg,var(--teal) 0%,var(--hybrid) 100%);
     box-shadow:0 16px 34px -16px rgba(58,150,168,.6);
   }
   .hero .plate{
-    display:inline-block;background:#fff;border-radius:14px;
-    padding:14px 22px;box-shadow:0 8px 20px -10px rgba(23,28,38,.4);
+    display:inline-block;background:#fff;border-radius:12px;
+    padding:10px 16px;box-shadow:0 8px 20px -10px rgba(23,28,38,.4);
   }
-  .hero .plate img{display:block;width:270px;max-width:72vw;height:auto}
+  .hero .plate img{display:block;width:150px;max-width:56vw;height:auto}
   .hero h1{
-    font-family:'Playfair Display',serif;font-weight:800;font-size:1.55rem;
-    line-height:1.05;margin-top:15px;letter-spacing:-.01em;
-    text-shadow:0 1px 2px rgba(23,28,38,.16);
+    font-family:'Playfair Display',serif;font-weight:800;font-size:1.5rem;
+    line-height:1.05;margin-top:14px;letter-spacing:-.01em;text-shadow:0 1px 2px rgba(23,28,38,.16);
   }
-  .hero .hero-sub{
-    font-size:.88rem;color:rgba(255,255,255,.92);margin-top:6px;
-    max-width:34ch;margin-left:auto;margin-right:auto;
-  }
+  .hero .hero-sub{font-size:.86rem;color:rgba(255,255,255,.92);margin:6px auto 0;max-width:34ch}
 
   /* ── thesis card ── */
-  .thesis{
-    background:var(--paper);border:1px solid var(--line);border-radius:16px;
-    padding:17px 18px 15px;margin-bottom:22px;position:relative;overflow:hidden;
-    box-shadow:0 12px 30px -20px rgba(23,28,38,.4);
-  }
-  .thesis::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
-    background:linear-gradient(180deg,var(--teal),var(--green));}
+  .thesis{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:17px 18px 15px;margin-bottom:22px;position:relative;overflow:hidden;box-shadow:0 12px 30px -20px rgba(23,28,38,.4)}
+  .thesis::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--teal),var(--green))}
   .thesis .line{font-size:1rem;line-height:1.55;color:var(--ink-2);font-weight:500;padding-left:6px}
   .thesis .line b{color:var(--ink);font-weight:700}
-  .thesis .stats{
-    display:flex;gap:0;margin-top:15px;padding-top:14px;padding-left:6px;
-    border-top:1px solid var(--line);
-  }
+  .thesis .stats{display:flex;gap:0;margin-top:15px;padding-top:14px;padding-left:6px;border-top:1px solid var(--line)}
   .thesis .stats div{flex:1;text-align:center;position:relative}
-  .thesis .stats div + div::before{
-    content:"";position:absolute;left:0;top:2px;bottom:2px;width:1px;background:var(--line);
-  }
-  .thesis .stats .num{
-    font-family:'Playfair Display',serif;font-weight:800;font-size:1.6rem;line-height:1;color:var(--teal-deep);
-  }
+  .thesis .stats div + div::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:1px;background:var(--line)}
+  .thesis .stats .num{font-family:'Playfair Display',serif;font-weight:800;font-size:1.6rem;line-height:1;color:var(--teal-deep)}
   .thesis .stats div:nth-child(3) .num{color:var(--fav)}
-  .thesis .stats .lbl{
-    font-family:'Oswald',sans-serif;font-size:.56rem;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--muted);margin-top:5px;
-  }
+  .thesis .stats .lbl{font-family:'Oswald',sans-serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:5px}
 
   /* ── sections ── */
   .section{margin-bottom:22px}
   .section > .shead{display:flex;align-items:center;gap:9px;margin-bottom:3px}
-  .section > .shead .tag{
-    font-family:'Oswald',sans-serif;font-weight:600;font-size:1.05rem;
-    letter-spacing:.1em;text-transform:uppercase;padding:6px 13px;border-radius:8px;
-    display:flex;align-items:center;gap:7px;
-  }
+  .section > .shead .tag{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.05rem;letter-spacing:.1em;text-transform:uppercase;padding:6px 13px;border-radius:8px;display:flex;align-items:center;gap:7px}
   .section.fav .tag{color:#0F6A38;background:var(--fav-bg)}
   .section.avoid .tag{color:#9E2C23;background:var(--avoid-bg)}
-  .section > .shead .count{
-    font-family:'Oswald',sans-serif;font-size:.66rem;color:var(--muted);letter-spacing:.06em;
-  }
+  .section > .shead .count{font-family:'Oswald',sans-serif;font-size:.66rem;color:var(--muted);letter-spacing:.06em}
   .section > .sub{font-size:.8rem;color:var(--ink-2);margin-bottom:11px}
 
-  /* ── terpene row as a card ── */
+  /* ── terpene row ── */
   .terp{
     display:flex;align-items:center;gap:12px;
     background:var(--paper);border:1px solid var(--line);border-radius:14px;
-    padding:11px 14px;margin-bottom:8px;
+    padding:11px 14px;margin-bottom:8px;text-decoration:none;color:inherit;
     transition:transform .15s,box-shadow .15s;
   }
-  .terp:hover{transform:translateY(-1px);box-shadow:0 10px 22px -14px rgba(23,28,38,.3)}
+  a.terp{cursor:pointer}
+  a.terp:hover{transform:translateY(-1px);box-shadow:0 10px 22px -14px rgba(23,28,38,.3)}
+  a.terp:active{transform:translateY(0)}
   .terp .coin{
-    flex:0 0 auto;width:42px;height:42px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;font-size:1.25rem;
-    background:var(--shell);position:relative;
+    flex:0 0 auto;width:46px;height:46px;border-radius:50%;overflow:hidden;
+    background:#fff;border:1px solid var(--line);position:relative;
+    display:flex;align-items:center;justify-content:center;
   }
-  .fav .terp .coin{background:var(--fav-bg)}
-  .avoid .terp .coin{background:var(--avoid-bg)}
+  .terp .coin img{width:100%;height:100%;object-fit:cover;display:block}
+  .terp .coin .fallback{font-size:1.25rem}
   .terp .coin .rank{
-    position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;
+    position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;
     border-radius:9px;background:var(--ink);color:#fff;font-family:'Oswald',sans-serif;
-    font-size:.6rem;font-weight:600;display:flex;align-items:center;justify-content:center;
+    font-size:.6rem;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;
   }
   .fav .terp .coin .rank{background:var(--fav)}
   .avoid .terp .coin .rank{background:var(--avoid)}
   .terp .body{flex:1;min-width:0}
-  .terp .name{
-    font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;
-    color:var(--ink);display:flex;align-items:baseline;gap:8px;
-  }
-  .terp .name .aroma{
-    font-family:'Oswald',sans-serif;font-weight:500;font-size:.58rem;
-    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
-    padding:2px 7px;background:var(--shell);border-radius:20px;
-  }
-  .terp .meter{
-    position:relative;height:7px;border-radius:5px;background:#EEF1F3;
-    margin-top:8px;overflow:hidden;
-  }
-  .terp .meter::after{
-    content:"";position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:rgba(23,28,38,.16);
-  }
+  .terp .name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--ink);display:flex;align-items:baseline;gap:8px}
+  .terp .name .aroma{font-family:'Oswald',sans-serif;font-weight:500;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:2px 7px;background:var(--shell);border-radius:20px}
+  .terp .meter{position:relative;height:7px;border-radius:5px;background:#EEF1F3;margin-top:8px;overflow:hidden}
+  .terp .meter::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:rgba(23,28,38,.16)}
   .terp .meter .fill{position:absolute;top:0;bottom:0;border-radius:5px;transition:width .55s ease,left .55s ease}
   .fav .terp .meter .fill{background:linear-gradient(90deg,var(--teal),var(--fav))}
   .avoid .terp .meter .fill{background:linear-gradient(90deg,var(--avoid),#E86A60)}
-  .terp .side{flex:0 0 auto;text-align:right;min-width:70px}
+  .terp .side{flex:0 0 auto;text-align:right;min-width:64px}
   .terp .side .stars{font-size:.88rem;letter-spacing:1px;line-height:1}
   .terp .side .stars .on{color:var(--gold)}
   .terp .side .stars .off{color:#D6DBE0}
-  .terp .side .n{
-    font-family:'Oswald',sans-serif;font-size:.6rem;color:var(--muted);
-    margin-top:4px;letter-spacing:.04em;
-  }
+  .terp .side .n{font-family:'Oswald',sans-serif;font-size:.6rem;color:var(--muted);margin-top:4px;letter-spacing:.04em}
   .terp .side .n.new{color:var(--sativa);font-weight:600}
+  .terp .chev{flex:0 0 auto;color:#C3C9CF;font-size:1.1rem;margin-left:2px}
 
-  /* ── empty / loading / legend ── */
   .msg{text-align:center;color:var(--ink-2);font-size:.95rem;line-height:1.8;padding:52px 22px}
   .msg .ico{font-size:2.2rem;display:block;margin-bottom:10px}
   .msg b{color:var(--ink);display:block;margin-bottom:7px;font-size:1.05rem;font-family:'Playfair Display',serif}
-  .legend{
-    font-size:.74rem;color:var(--ink-2);line-height:1.7;margin-top:10px;
-    padding:14px 15px;background:var(--shell);border-radius:12px;border:1px solid var(--line);
-  }
+  .legend{font-size:.74rem;color:var(--ink-2);line-height:1.7;margin-top:10px;padding:14px 15px;background:var(--shell);border-radius:12px;border:1px solid var(--line)}
   .legend b{color:var(--ink)}
-
-  @media (prefers-reduced-motion: reduce){
-    .terp,.terp .meter .fill{transition:none}
-  }
+  @media (prefers-reduced-motion: reduce){.terp,.terp .meter .fill{transition:none}}
 </style>
 </head>
 <body>
@@ -178,6 +121,11 @@ const READ_URL = "https://script.google.com/macros/s/AKfycbwDB49IjpEutdT-XH8bXX-
 const USER_EMAIL = new URLSearchParams(location.search).get("user") || "";
 const out = document.getElementById("out");
 
+/* ── SET THIS to your terpene detail page. The terpene name is appended, URL-encoded.
+   e.g. "https://adriangcanada72-star.github.io/cards/terpene.html?terp="
+   Leave "" to disable tapping. ── */
+const TERP_DETAIL_URL = "";
+
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 const ALIASES = {
@@ -186,134 +134,93 @@ const ALIASES = {
   "Beta-Linalool":"Linalool","Alpha-Bisabolol":"Bisabolol","Beta-Bisabolol":"Bisabolol",
   "Alpha-Farnesene":"Farnesene","Beta-Farnesene":"Farnesene","Gamma-Terpinolene":"Terpinolene"
 };
-function normTerp(raw) {
-  if (!raw) return "";
-  const r = String(raw).trim();
-  if (ALIASES[r]) return ALIASES[r];
-  return r;
-}
+function normTerp(raw){ if(!raw) return ""; const r=String(raw).trim(); return ALIASES[r]||r; }
+
 const AROMA_NOTE = {
   "Beta-Myrcene":"Earth","Beta-Caryophyllene":"Pepper","Limonene":"Citrus","D-Limonene":"Citrus",
   "Alpha-Pinene":"Pine","Beta-Pinene":"Pine","Linalool":"Floral","Alpha-Humulene":"Hops",
   "Terpinolene":"Herbal","Ocimene":"Sweet","Bisabolol":"Chamomile","Nerolidol":"Woody",
   "Guaiol":"Resin","Farnesene":"Apple","Eucalyptol":"Mint","Valencene":"Orange",
-  "Terpineol":"Lilac","Geraniol":"Rose","Ocimene ":"Sweet","Camphene":"Camphor"
+  "Terpineol":"Lilac","Geraniol":"Rose","Camphene":"Camphor"
 };
-const AROMA_ICON = {
-  "Earth":"🌰","Pepper":"🌶️","Citrus":"🍋","Pine":"🌲","Floral":"🌸","Hops":"🍺",
-  "Herbal":"🌿","Sweet":"🍯","Chamomile":"🌼","Woody":"🪵","Resin":"🟤","Apple":"🍏",
-  "Mint":"🌱","Orange":"🍊","Lilac":"💐","Rose":"🌹","Camphor":"❄️"
-};
-function aromaIcon(aroma){ return AROMA_ICON[aroma] || "🌿"; }
+const AROMA_ICON = {"Earth":"🌰","Pepper":"🌶️","Citrus":"🍋","Pine":"🌲","Floral":"🌸","Hops":"🍺","Herbal":"🌿","Sweet":"🍯","Chamomile":"🌼","Woody":"🪵","Resin":"🟤","Apple":"🍏","Mint":"🌱","Orange":"🍊","Lilac":"💐","Rose":"🌹","Camphor":"❄️"};
 
-function computePalate(scans, ratings) {
-  const byGtin = {};
-  scans.forEach(s => { if (s.gtin) byGtin[s.gtin] = s; });
+/* terpene → image URL, pulled from the Terpene Database */
+const TERP_IMG = {"Alpha-Pinene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/13tjId51VyiyGYpvVyTj.png", "Beta-Pinene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/4bONx21XhySYeKAhUg3Y.png", "Bisabolol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/aDhtBrgRymAM3rRLMaSA.png", "Borneol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/svKvXqvbyBL6oHwsfP7K.png", "Camphene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/Mr9qJ5r89etsXjJ9N3re.png", "Carene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/2ItqnK3zWmuhqwP3m5qI.png", "Cedrene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/50z5dKavVE3aOcdWUljU.png", "Cymene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/mNNDTJYdcdsPhYAL1Rfy.png", "Eucalyptol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/nYo0KIF1bjkyYAPQtOpB.png", "Farnesene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/ujy89Tp8EQZtNZ7IU2w5.png", "Fenchol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/dEvnZITrv5AQNprhXCYq.png", "Geraniol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/gt0YFQBkH0fR7yWAJEQw.png", "Geranyl-Acetate": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/lTXXABHS4XhXcxulN3SY.png", "Germacrene-B": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/VUtGAECUqtWaaKjyb49K.png", "Guaiol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/J1ymPuflZ308G6x9to7I.png", "Alpha-Humulene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/PGIeBNlqSaaED8OhOPVF.png", "Isopulegol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/1QRqAoUGq5zecY1UiGce.png", "Limonene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/mDJFJYGbAYoXQRmTepZX.png", "Linalool": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/Dyrzzzusx2VRTduUa71l.png", "Menthol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/QBWRdhIGFPLbiu93vi5o.png", "Nerolidol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/WTK6znDtwmWMT6p9kDJH.png", "Ocimene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/GPAYIPfxsnJL8IB8XHdk.png", "Phellandrene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/pfoZKdeUalj3yFDzvkQq.png", "Sabinene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/KlPYm8Z6QIpSK72mEuMD.png", "Selinadienes": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/ewoS66ssO80zMIFITFVI.png", "Terpinene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/DJ0B7vBSQMNZvL4asTIq.png", "Terpineol": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/0yD49oD1qJTEBBKSYkZM.png", "Terpinolene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/lPnm2pIgN6HKBLJtQVS7.png", "Valencene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/SmbrJySCKniiwqCGxacb.png", "Beta-Caryophyllene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/PdwcX8f85VJ2sk3PHvDZ.png", "Beta-Myrcene": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/41PjtcGV2ruPcLtOK2SK/pub/IRtOjavKkIutQADksAQw.png"};
+function terpImg(name){ return TERP_IMG[name] || ""; }
+function terpHref(name){ return TERP_DETAIL_URL ? TERP_DETAIL_URL + encodeURIComponent(name) : ""; }
 
-  const acc = {};
-  let ratedCount = 0;
-
-  Object.keys(ratings).forEach(gtin => {
-    const entry = ratings[gtin];
-    const rating = (entry && typeof entry === "object") ? entry.rating : entry;
-    if (!(rating >= 1 && rating <= 5)) return;
-    const scan = byGtin[gtin];
-    if (!scan) return;
-
-    ratedCount++;
-    const centered = rating - 3;
-
-    const names = [scan.terp1, scan.terp2, scan.terp3].map(normTerp).filter(Boolean);
-    if (!names.length) return;
-
-    const pcts = (entry && typeof entry === "object")
-      ? [entry.p1, entry.p2, entry.p3]
-      : [null, null, null];
-    const havePct = pcts.some(p => p != null && p > 0);
-    const totalPct = havePct ? pcts.reduce((a, b) => a + (b > 0 ? b : 0), 0) : 0;
-
-    names.forEach((name, i) => {
+function computePalate(scans, ratings){
+  const byGtin={}; scans.forEach(s=>{ if(s.gtin) byGtin[s.gtin]=s; });
+  const acc={}; let ratedCount=0;
+  Object.keys(ratings).forEach(gtin=>{
+    const entry=ratings[gtin];
+    const rating=(entry&&typeof entry==="object")?entry.rating:entry;
+    if(!(rating>=1&&rating<=5)) return;
+    const scan=byGtin[gtin]; if(!scan) return;
+    ratedCount++; const centered=rating-3;
+    const names=[scan.terp1,scan.terp2,scan.terp3].map(normTerp).filter(Boolean);
+    if(!names.length) return;
+    const pcts=(entry&&typeof entry==="object")?[entry.p1,entry.p2,entry.p3]:[null,null,null];
+    const havePct=pcts.some(p=>p!=null&&p>0);
+    const totalPct=havePct?pcts.reduce((a,b)=>a+(b>0?b:0),0):0;
+    names.forEach((name,i)=>{
       let w;
-      if (havePct && totalPct > 0) {
-        const p = pcts[i];
-        w = (p != null && p > 0) ? p / totalPct : 0;
-      } else {
-        w = 1 / names.length;
-      }
-      if (w <= 0) return;
-      const a = acc[name] || (acc[name] = {wsum:0, wrate:0, products:0, ratingSum:0});
-      a.wsum += w;
-      a.wrate += w * centered;
-      a.products += 1;
-      a.ratingSum += rating;
+      if(havePct&&totalPct>0){ const p=pcts[i]; w=(p!=null&&p>0)?p/totalPct:0; }
+      else { w=1/names.length; }
+      if(w<=0) return;
+      const a=acc[name]||(acc[name]={wsum:0,wrate:0,products:0,ratingSum:0});
+      a.wsum+=w; a.wrate+=w*centered; a.products+=1; a.ratingSum+=rating;
     });
   });
-
-  const terps = Object.keys(acc).map(name => {
-    const a = acc[name];
-    return {
-      terpene: name,
-      score: a.wsum ? a.wrate / a.wsum : 0,
-      avg: a.products ? a.ratingSum / a.products : 0,
-      products: a.products
-    };
-  });
-
-  return { terps, ratedCount };
+  const terps=Object.keys(acc).map(name=>{ const a=acc[name]; return {terpene:name,score:a.wsum?a.wrate/a.wsum:0,avg:a.products?a.ratingSum/a.products:0,products:a.products}; });
+  return {terps,ratedCount};
 }
 
-function starEls(avg) {
-  const full = Math.round(avg);
-  let s = "";
-  for (let i = 1; i <= 5; i++) s += `<span class="${i <= full ? "on" : "off"}">★</span>`;
-  return s;
+function starEls(avg){ const full=Math.round(avg); let s=""; for(let i=1;i<=5;i++) s+=`<span class="${i<=full?"on":"off"}">★</span>`; return s; }
+
+function coinInner(name,aroma,rank){
+  const img=terpImg(name);
+  const inner=img?`<img src="${esc(img)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.fallback').style.display='flex'"><span class="fallback" style="display:none">${AROMA_ICON[aroma]||"🌿"}</span>`
+                 :`<span class="fallback">${AROMA_ICON[aroma]||"🌿"}</span>`;
+  return `<div class="coin">${inner}<span class="rank">${rank}</span></div>`;
 }
-function terpRow(t, rank) {
-  const pct = Math.min(50, Math.abs(t.score) / 2 * 50);
-  const left = t.score >= 0 ? 50 : (50 - pct);
-  const low = t.products < 2;
-  const aroma = AROMA_NOTE[t.terpene];
+
+function terpRow(t,rank){
+  const pct=Math.min(50,Math.abs(t.score)/2*50);
+  const left=t.score>=0?50:(50-pct);
+  const low=t.products<2;
+  const aroma=AROMA_NOTE[t.terpene];
+  const href=terpHref(t.terpene);
+  const tag=href?"a":"div";
+  const attrs=href?`href="${esc(href)}" target="_top"`:"";
+  const chev=href?`<span class="chev">›</span>`:"";
   return `
-    <div class="terp">
-      <div class="coin">${aromaIcon(aroma)}<span class="rank">${rank}</span></div>
+    <${tag} class="terp" ${attrs}>
+      ${coinInner(t.terpene,aroma,rank)}
       <div class="body">
-        <div class="name">${esc(t.terpene)}${aroma ? `<span class="aroma">${esc(aroma)}</span>` : ""}</div>
+        <div class="name">${esc(t.terpene)}${aroma?`<span class="aroma">${esc(aroma)}</span>`:""}</div>
         <div class="meter"><span class="fill" style="left:${left}%;width:${pct}%"></span></div>
       </div>
       <div class="side">
         <div class="stars">${starEls(t.avg)}</div>
-        <div class="n ${low ? "new" : ""}">${t.products} product${t.products === 1 ? "" : "s"}${low ? " · new" : ""}</div>
+        <div class="n ${low?"new":""}">${t.products} product${t.products===1?"":"s"}${low?" · new":""}</div>
       </div>
-    </div>`;
+      ${chev}
+    </${tag}>`;
 }
 
-function render(data) {
-  const { terps, ratedCount } = data;
-
-  if (!USER_EMAIL) {
-    out.innerHTML = `<div class="msg"><span class="ico">👋</span><b>Sign in to see your palate</b>Rate the products in your collection and your taste profile builds here.</div>`;
-    return;
-  }
-  if (ratedCount === 0) {
-    out.innerHTML = `<div class="msg"><span class="ico">⭐</span><b>No ratings yet</b>Open a card in your collection, give it a star rating, and your palate starts here.</div>`;
-    return;
-  }
-
-  const favs = terps.filter(t => t.score > 0.15).sort((a, b) => b.score - a.score);
-  const avoid = terps.filter(t => t.score < -0.15).sort((a, b) => a.score - b.score);
-
-  let head = "";
-  if (favs.length) {
-    const top = favs.slice(0, 3).map(t => t.terpene).join(", ");
-    head += `You lean toward <b>${esc(top)}</b>. `;
-  }
-  if (avoid.length) {
-    const bot = avoid.slice(0, 2).map(t => t.terpene).join(" and ");
-    head += `You tend to rate <b>${esc(bot)}</b> lower.`;
-  }
-  if (!head) head = "Keep rating — a few more and clear patterns will emerge.";
-
-  out.innerHTML = `
+function render(data){
+  const {terps,ratedCount}=data;
+  if(!USER_EMAIL){ out.innerHTML=`<div class="msg"><span class="ico">👋</span><b>Sign in to see your palate</b>Rate the products in your collection and your taste profile builds here.</div>`; return; }
+  if(ratedCount===0){ out.innerHTML=`<div class="msg"><span class="ico">⭐</span><b>No ratings yet</b>Open a card in your collection, give it a star rating, and your palate starts here.</div>`; return; }
+  const favs=terps.filter(t=>t.score>0.15).sort((a,b)=>b.score-a.score);
+  const avoid=terps.filter(t=>t.score<-0.15).sort((a,b)=>a.score-b.score);
+  let head="";
+  if(favs.length){ const top=favs.slice(0,3).map(t=>t.terpene).join(", "); head+=`You lean toward <b>${esc(top)}</b>. `; }
+  if(avoid.length){ const bot=avoid.slice(0,2).map(t=>t.terpene).join(" and "); head+=`You tend to rate <b>${esc(bot)}</b> lower.`; }
+  if(!head) head="Keep rating — a few more and clear patterns will emerge.";
+  out.innerHTML=`
     <div class="thesis">
       <div class="line">${head}</div>
       <div class="stats">
@@ -322,40 +229,36 @@ function render(data) {
         <div><div class="num">${favs.length}</div><div class="lbl">Favorites</div></div>
       </div>
     </div>
-
-    ${favs.length ? `
+    ${favs.length?`
     <div class="section fav">
       <div class="shead"><span class="tag">🌿 Favorites</span><span class="count">${favs.length}</span></div>
       <div class="sub">Terpenes in the products you rate highest.</div>
-      ${favs.map((t, i) => terpRow(t, i + 1)).join("")}
-    </div>` : ""}
-
-    ${avoid.length ? `
+      ${favs.map((t,i)=>terpRow(t,i+1)).join("")}
+    </div>`:""}
+    ${avoid.length?`
     <div class="section avoid">
       <div class="shead"><span class="tag">Tend to Avoid</span><span class="count">${avoid.length}</span></div>
       <div class="sub">Terpenes in the products you rate lowest.</div>
-      ${avoid.map((t, i) => terpRow(t, i + 1)).join("")}
-    </div>` : ""}
-
+      ${avoid.map((t,i)=>terpRow(t,i+1)).join("")}
+    </div>`:""}
     <div class="legend">
       Scores weight each rating by the terpene percentages you enter on a card;
       without them, a product's three terpenes count equally. Label position
       (1st, 2nd, 3rd) is never used — it doesn't indicate dominance. A terpene
-      marked <b>new</b> is backed by a single product, so it will move as you
-      rate more.
+      marked <b>new</b> is backed by a single product, so it will move as you rate more.
     </div>`;
 }
 
-async function load() {
-  if (!USER_EMAIL) { render({ terps: [], ratedCount: 0 }); return; }
-  try {
-    const r = await fetch(`${READ_URL}?type=palate&user=${encodeURIComponent(USER_EMAIL)}`);
-    const d = await r.json();
-    const scans = Array.isArray(d.scans) ? d.scans : [];
-    const ratings = d.ratings || {};
-    render(computePalate(scans, ratings));
-  } catch {
-    out.innerHTML = `<div class="msg"><span class="ico">📡</span><b>Couldn't load your palate</b>Check your connection and pull down to refresh.</div>`;
+async function load(){
+  if(!USER_EMAIL){ render({terps:[],ratedCount:0}); return; }
+  try{
+    const r=await fetch(`${READ_URL}?type=palate&user=${encodeURIComponent(USER_EMAIL)}`);
+    const d=await r.json();
+    const scans=Array.isArray(d.scans)?d.scans:[];
+    const ratings=d.ratings||{};
+    render(computePalate(scans,ratings));
+  }catch{
+    out.innerHTML=`<div class="msg"><span class="ico">📡</span><b>Couldn't load your palate</b>Check your connection and pull down to refresh.</div>`;
   }
 }
 load();
