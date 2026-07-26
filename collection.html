@@ -173,30 +173,27 @@
     letter-spacing:.04em;color:#1B2430;
   }
   .heroinfo .fterps{
-    display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:0 0 6px;
-  }
-  .heroinfo .fterps .tp{
-    font-family:'DM Sans',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:.01em;
-    color:#111418;background:color-mix(in srgb, var(--border) 15%, #fff);
-    padding:4px 11px;border-radius:999px;
+    display:inline-block;font-family:'DM Sans',sans-serif;font-size:.48rem;line-height:1.3;
+    color:#111418;font-weight:700;letter-spacing:.01em;margin:0 auto 6px;
+    background:color-mix(in srgb, var(--border) 15%, #fff);
+    padding:5px 13px;border-radius:999px;
     border:1px solid color-mix(in srgb, var(--border) 30%, #fff);
     box-shadow:0 1px 3px rgba(27,36,48,.10);
   }
   @media(min-width:680px){
     .heroinfo .finfo .tc{font-size:.5rem}
-    .heroinfo .fterps .tp{font-size:.52rem}
+    .heroinfo .fterps{font-size:.54rem}
   }
   #viewer .heroinfo{padding:0 12px 8px}
   #viewer .heroinfo .finfo{gap:16px}
   #viewer .heroinfo .finfo .tc{font-size:.66rem}
-  #viewer .heroinfo .fterps .tp{font-size:.64rem}
+  #viewer .heroinfo .fterps{font-size:.68rem}
   /* phone thumbnails: show the numbers, just smaller */
   @media(max-width:679px){
     .grid .heroinfo{padding:0 4px 3px}
     .grid .heroinfo .finfo{gap:7px}
     .grid .heroinfo .finfo .tc{font-size:.4rem}
-    .grid .heroinfo .fterps{gap:4px;margin-bottom:4px}
-    .grid .heroinfo .fterps .tp{font-size:.4rem;padding:3px 8px}
+    .grid .heroinfo .fterps{font-size:.42rem;line-height:1.25;padding:3px 9px;margin-bottom:4px}
   }
   .plate .txt .pts{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.46rem;
@@ -525,7 +522,7 @@
   #viewer .plate .txt .pos{font-size:1rem;letter-spacing:.14em}
   #viewer .plate .txt .pts{font-size:.9rem;margin-top:5px}
   #viewer .heroinfo .finfo .tc{font-size:1rem}
-  #viewer .heroinfo .fterps .tp{font-size:.72rem}
+  #viewer .heroinfo .fterps{font-size:.72rem}
   #viewer .rating .star{font-size:2rem}
   #viewer .cardno{font-size:.8rem}
 
@@ -2361,8 +2358,8 @@ function cardHTML(p, scan, idx) {
   // a compact terpene line for the FRONT: "Myrcene 0.9% · Limonene 0.3% · …"
   const frontTerps = terps.map((t, i) => {
     const pc = savedTerpPct[i];
-    return '<span class="tp">' + esc(t) + (pc != null ? " " + fmtPct(pc) : "") + '</span>';
-  }).join("");
+    return esc(t) + (pc != null ? " " + fmtPct(pc) : "");
+  }).join(" \u00b7 ");
 
   const axis = (key, label, val, desc) => `
         <div class="m" data-axis="${key}">
@@ -2663,7 +2660,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
     if (line) {
       const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""));
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
-      line.innerHTML = names.map((n, i) => '<span class="tp">' + n + (pcs[i] != null ? " " + fmt(pcs[i]) : "") + '</span>').join("");
+      line.textContent = names.map((n, i) => n + (pcs[i] != null ? " " + fmt(pcs[i]) : "")).join(" \u00b7 ");
     }
   }
 
