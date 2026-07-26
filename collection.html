@@ -182,7 +182,7 @@
   }
   .heroinfo .fterps .trow:last-child{border-bottom:none}
   .heroinfo .fterps .tpc{color:var(--deep);font-weight:700}
-  .heroinfo .fterps .tnone{text-align:center;color:#8B959F;font-weight:600;font-style:italic;padding:2px 0}
+  .heroinfo .fterps .tnone{text-align:center;color:#8B959F;font-weight:700;font-style:italic;font-size:.6rem;padding:6px 0}
   @media(min-width:680px){
     .heroinfo .finfo .tc{font-size:.5rem}
     .heroinfo .fterps{font-size:.46rem}
@@ -191,12 +191,14 @@
   #viewer .heroinfo .finfo{gap:16px}
   #viewer .heroinfo .finfo .tc{font-size:.66rem}
   #viewer .heroinfo .fterps{font-size:.62rem;margin-top:6px;max-width:260px}
+  #viewer .heroinfo .fterps .tnone{font-size:.82rem}
   /* phone thumbnails: show the numbers, just smaller */
   @media(max-width:679px){
     .grid .heroinfo{padding:0 4px 3px}
     .grid .heroinfo .finfo{gap:7px}
     .grid .heroinfo .finfo .tc{font-size:.4rem}
     .grid .heroinfo .fterps{font-size:.4rem;line-height:1.3;margin-top:3px;max-width:none}
+    .grid .heroinfo .fterps .tnone{font-size:.52rem}
   }
   .plate .txt .pts{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.46rem;
@@ -527,6 +529,7 @@
   #viewer .plate .txt .pts{font-size:.9rem;margin-top:5px}
   #viewer .heroinfo .finfo .tc{font-size:1rem}
   #viewer .heroinfo .fterps{font-size:.74rem;margin-top:6px;max-width:300px}
+  #viewer .heroinfo .fterps .tnone{font-size:.92rem}
   #viewer .rating .star{font-size:2rem}
   #viewer .cardno{font-size:.8rem}
 
@@ -2662,9 +2665,12 @@ function wireCard(scene, p, {flippable = true} = {}) {
     if (tcs[1]) tcs[1].textContent = "CBD " + (sp2.cbd != null ? fmt(sp2.cbd) : (p.cbd || "\u2014"));
     const line = front.querySelector(".heroinfo .fterps");
     if (line) {
-      const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""));
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
-      line.innerHTML = names.length ? names.map((n, i) => '<div class="trow"><span class="tnm">' + n + '</span>' + (pcs[i] != null ? '<span class="tpc">' + fmt(pcs[i]) + '</span>' : '') + '</div>').join("") : '<div class="tnone">No Terpenes Listed</div>';
+      const items = rows.map((r, i) => ({ n: r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""), pc: pcs[i] }))
+                        .filter(o => o.n && o.n !== "Tap to add" && o.n !== "(none)");
+      line.innerHTML = items.length
+        ? items.map(o => '<div class="trow"><span class="tnm">' + o.n + '</span>' + (o.pc != null ? '<span class="tpc">' + fmt(o.pc) + '</span>' : '') + '</div>').join("")
+        : '<div class="tnone">No Terpenes Listed</div>';
     }
   }
 
