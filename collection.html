@@ -173,27 +173,29 @@
     letter-spacing:.04em;color:#1B2430;
   }
   .heroinfo .fterps{
-    display:inline-block;font-family:'DM Sans',sans-serif;font-size:.48rem;line-height:1.3;
-    color:#111418;font-weight:700;letter-spacing:.01em;margin:0 auto 6px;
-    background:color-mix(in srgb, var(--border) 15%, #fff);
-    padding:5px 13px;border-radius:999px;
-    border:1px solid color-mix(in srgb, var(--border) 30%, #fff);
-    box-shadow:0 1px 3px rgba(27,36,48,.10);
+    text-align:left;margin:6px auto 0;max-width:160px;
+    font-family:'DM Sans',sans-serif;font-size:.46rem;font-weight:700;color:#111418;line-height:1.4;
   }
+  .heroinfo .fterps .trow{
+    display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    padding:2px 0;border-bottom:1px solid #EDF0F2;
+  }
+  .heroinfo .fterps .trow:last-child{border-bottom:none}
+  .heroinfo .fterps .tpc{color:var(--deep);font-weight:700}
   @media(min-width:680px){
     .heroinfo .finfo .tc{font-size:.5rem}
-    .heroinfo .fterps{font-size:.54rem}
+    .heroinfo .fterps{font-size:.46rem}
   }
   #viewer .heroinfo{padding:0 12px 8px}
   #viewer .heroinfo .finfo{gap:16px}
   #viewer .heroinfo .finfo .tc{font-size:.66rem}
-  #viewer .heroinfo .fterps{font-size:.68rem}
+  #viewer .heroinfo .fterps{font-size:.62rem;margin-top:6px;max-width:260px}
   /* phone thumbnails: show the numbers, just smaller */
   @media(max-width:679px){
     .grid .heroinfo{padding:0 4px 3px}
     .grid .heroinfo .finfo{gap:7px}
     .grid .heroinfo .finfo .tc{font-size:.4rem}
-    .grid .heroinfo .fterps{font-size:.42rem;line-height:1.25;padding:3px 9px;margin-bottom:4px}
+    .grid .heroinfo .fterps{font-size:.4rem;line-height:1.3;margin-top:3px;max-width:none}
   }
   .plate .txt .pts{
     font-family:'Oswald',sans-serif;font-weight:500;font-size:.46rem;
@@ -522,7 +524,7 @@
   #viewer .plate .txt .pos{font-size:1rem;letter-spacing:.14em}
   #viewer .plate .txt .pts{font-size:.9rem;margin-top:5px}
   #viewer .heroinfo .finfo .tc{font-size:1rem}
-  #viewer .heroinfo .fterps{font-size:.72rem}
+  #viewer .heroinfo .fterps{font-size:.74rem;margin-top:6px;max-width:300px}
   #viewer .rating .star{font-size:2rem}
   #viewer .cardno{font-size:.8rem}
 
@@ -2358,8 +2360,8 @@ function cardHTML(p, scan, idx) {
   // a compact terpene line for the FRONT: "Myrcene 0.9% · Limonene 0.3% · …"
   const frontTerps = terps.map((t, i) => {
     const pc = savedTerpPct[i];
-    return esc(t) + (pc != null ? " " + fmtPct(pc) : "");
-  }).join(" \u00b7 ");
+    return '<div class="trow"><span class="tnm">' + esc(t) + '</span>' + (pc != null ? '<span class="tpc">' + fmtPct(pc) + '</span>' : '') + '</div>';
+  }).join("");
 
   const axis = (key, label, val, desc) => `
         <div class="m" data-axis="${key}">
@@ -2419,10 +2421,6 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
               ${logoImg}
             </div>
           </div>
-          <div class="heroinfo">
-            ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
-            <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span></div>
-          </div>
           <div class="plate">
             <div class="burst"></div>
             <div class="txt">
@@ -2430,6 +2428,10 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
               <div class="pos">${esc(sp)}</div>
               ${(p.category || p.size) ? `<div class="pts">${esc([p.category, p.size].filter(Boolean).join(" · "))}</div>` : ""}
             </div>
+          </div>
+          <div class="heroinfo">
+            <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span></div>
+            ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
           </div>
           <div class="rating" data-gtin="${esc(scan.gtin || "")}">
             <span class="stars" role="radiogroup" aria-label="Rate 1 to 5 stars">
@@ -2660,7 +2662,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
     if (line) {
       const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""));
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
-      line.textContent = names.map((n, i) => n + (pcs[i] != null ? " " + fmt(pcs[i]) : "")).join(" \u00b7 ");
+      line.innerHTML = names.map((n, i) => '<div class="trow"><span class="tnm">' + n + '</span>' + (pcs[i] != null ? '<span class="tpc">' + fmt(pcs[i]) + '</span>' : '') + '</div>').join("");
     }
   }
 
