@@ -182,6 +182,7 @@
   }
   .heroinfo .fterps .trow:last-child{border-bottom:none}
   .heroinfo .fterps .tpc{color:var(--deep);font-weight:700}
+  .heroinfo .fterps .tnone{text-align:center;color:#8B959F;font-weight:600;font-style:italic;padding:2px 0}
   @media(min-width:680px){
     .heroinfo .finfo .tc{font-size:.5rem}
     .heroinfo .fterps{font-size:.46rem}
@@ -263,7 +264,7 @@
 
   /* rating (on the card front, below the nameplate) */
   .rating{
-    margin-top:auto;background:#fff;padding:7px 10px 9px;
+    margin-top:auto;position:relative;background:#fff;padding:7px 10px 9px;
     display:flex;align-items:center;justify-content:center;gap:8px;
     border-top:1px solid #EDF0F2;
   }
@@ -279,6 +280,7 @@
   .rating .star.on{color:#F5B301}
   .rating .star:active{transform:scale(1.2)}
   .rating .saved{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
     font-family:'DM Sans',sans-serif;font-size:.42rem;color:var(--deep);
     opacity:0;transition:opacity .2s;
   }
@@ -2358,10 +2360,10 @@ function cardHTML(p, scan, idx) {
   const blurb = blendFor(terps) || firstSentence(p.description);
 
   // a compact terpene line for the FRONT: "Myrcene 0.9% · Limonene 0.3% · …"
-  const frontTerps = terps.map((t, i) => {
+  const frontTerps = terps.length ? terps.map((t, i) => {
     const pc = savedTerpPct[i];
     return '<div class="trow"><span class="tnm">' + esc(t) + '</span>' + (pc != null ? '<span class="tpc">' + fmtPct(pc) + '</span>' : '') + '</div>';
-  }).join("");
+  }).join("") : '<div class="tnone">No Terpenes Listed</div>';
 
   const axis = (key, label, val, desc) => `
         <div class="m" data-axis="${key}">
@@ -2662,7 +2664,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
     if (line) {
       const names = rows.map(r => r.querySelector(".t").textContent.replace(/\s+[\d.]+%?.*$/, ""));
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
-      line.innerHTML = names.map((n, i) => '<div class="trow"><span class="tnm">' + n + '</span>' + (pcs[i] != null ? '<span class="tpc">' + fmt(pcs[i]) + '</span>' : '') + '</div>').join("");
+      line.innerHTML = names.length ? names.map((n, i) => '<div class="trow"><span class="tnm">' + n + '</span>' + (pcs[i] != null ? '<span class="tpc">' + fmt(pcs[i]) + '</span>' : '') + '</div>').join("") : '<div class="tnone">No Terpenes Listed</div>';
     }
   }
 
