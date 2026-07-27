@@ -2351,7 +2351,8 @@ function cardHTML(p, scan, idx) {
   // THC/CBD: show the user's entered value if they gave one, else catalog range
   const thcDisplay = (savedPref && savedPref.thc != null) ? fmtPct(savedPref.thc) : (p.thc || "\u2014");
   const cbdDisplay = (savedPref && savedPref.cbd != null) ? fmtPct(savedPref.cbd) : (p.cbd || "\u2014");
-  const terpDisplay = (savedPref && savedPref.totalTerp != null) ? fmtPct(savedPref.totalTerp) : "\u2014";
+  const hasTerp = savedPref && savedPref.totalTerp != null;
+  const terpDisplay = hasTerp ? fmtPct(savedPref.totalTerp) : "";
   // per-position saved terpene %
   const savedTerpPct = [savedPref.p1, savedPref.p2, savedPref.p3];
 
@@ -2439,7 +2440,7 @@ ${axis("over", "Overall",  tri.overall,  tri.overall_desc)}
             </div>
           </div>
           <div class="heroinfo">
-            <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span><span class="tc">TERP ${esc(terpDisplay)}</span></div>
+            <div class="finfo"><span class="tc">THC ${esc(thcDisplay)}</span><span class="tc">CBD ${esc(cbdDisplay)}</span><span class="tc"${hasTerp ? "" : ` style="display:none"`}>TERP ${esc(terpDisplay)}</span></div>
             ${frontTerps ? `<div class="fterps">${frontTerps}</div>` : ""}
           </div>
           <div class="rating" data-gtin="${esc(scan.gtin || "")}">
@@ -2667,7 +2668,7 @@ function wireCard(scene, p, {flippable = true} = {}) {
     const tcs = front.querySelectorAll(".heroinfo .finfo .tc");
     if (tcs[0]) tcs[0].textContent = "THC " + (sp2.thc != null ? fmt(sp2.thc) : (p.thc || "\u2014"));
     if (tcs[1]) tcs[1].textContent = "CBD " + (sp2.cbd != null ? fmt(sp2.cbd) : (p.cbd || "\u2014"));
-    if (tcs[2]) tcs[2].textContent = "TERP " + (sp2.totalTerp != null ? fmt(sp2.totalTerp) : "\u2014");
+    if (tcs[2]) { if (sp2.totalTerp != null) { tcs[2].textContent = "TERP " + fmt(sp2.totalTerp); tcs[2].style.display = ""; } else { tcs[2].style.display = "none"; } }
     const line = front.querySelector(".heroinfo .fterps");
     if (line) {
       const pcs = [sp2.p1, sp2.p2, sp2.p3];
